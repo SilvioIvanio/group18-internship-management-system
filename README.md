@@ -13,3 +13,14 @@ DIMS replaces manual paper-based processes by bridging Students, Industry Employ
 - **Document Integrity:** Binary file handling architecture to validate and upload CVs/transcripts via local servers. 
 
 ## Technology Architecture
+- **Frontend Stack**: HTML5, Vanilla JavaScript (`app.js`), Vanilla CSS3 (`style.css`).
+- **Backend Stack**: PHP 8.2 (REST API Layer).
+- **Database Engine**: MySQL 8.0 (Relational tables linked by strictly preserved foreign-keys via InnoDB).
+
+## Quick Start
+1. Ensure your local server environment (XAMPP/MAMP/LAMP) is active.
+2. Initialize the DB via `db/schema.sql`.
+3. Drop the project root into `/htdocs`.
+4. Run `http://localhost/DIMS/index.html`.
+
+For deeper explanations and technical details, please consult the `docs/` folder.
