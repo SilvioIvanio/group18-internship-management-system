@@ -18,3 +18,33 @@ CREATE TABLE user_profiles (
     phone VARCHAR(20),
     address VARCHAR(255),
     -- Student specific
+    student_no VARCHAR(20),
+    programme VARCHAR(100),
+    year_of_study VARCHAR(20),
+    faculty VARCHAR(100),
+    cv_path VARCHAR(255),
+    transcript_path VARCHAR(255),
+    -- Employer specific
+    company_name VARCHAR(100),
+    industry VARCHAR(50),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+-- 3. Vacancies Table
+CREATE TABLE vacancies (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    employer_id INT NOT NULL,
+    title VARCHAR(100) NOT NULL,
+    department VARCHAR(100),
+    location VARCHAR(100),
+    duration_months INT,
+    deadline DATE,
+    slots INT,
+    sector VARCHAR(50),
+    description TEXT,
+    requirements TEXT,
+    remuneration VARCHAR(100),
+    status VARCHAR(20) DEFAULT 'Pending Review', -- Pending Review, Open, Closed
+    FOREIGN KEY (employer_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
