@@ -48,3 +48,43 @@ CREATE TABLE vacancies (
     FOREIGN KEY (employer_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
+-- 4. Applications Table
+CREATE TABLE applications (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    student_id INT NOT NULL,
+    vacancy_id INT NOT NULL,
+    status VARCHAR(20) DEFAULT 'Pending', -- Pending, Shortlisted, Accepted, Rejected
+    applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (student_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (vacancy_id) REFERENCES vacancies(id) ON DELETE CASCADE
+);
+
+-- 5. Placements Table (Active Internships)
+CREATE TABLE placements (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    student_id INT NOT NULL,
+    vacancy_id INT NOT NULL,
+    start_date DATE,
+    end_date DATE,
+    status VARCHAR(20) DEFAULT 'Active', -- Active, Completed, Terminated
+    FOREIGN KEY (student_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (vacancy_id) REFERENCES vacancies(id) ON DELETE CASCADE
+);
+
+-- 6. Logbooks Table
+CREATE TABLE logbooks (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    placement_id INT NOT NULL,
+    week_title VARCHAR(50) NOT NULL,
+    dates VARCHAR(50),
+    body TEXT NOT NULL,
+    hours INT,
+    status VARCHAR(20) DEFAULT 'Pending', -- Pending, Approved, Rejected
+    submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (placement_id) REFERENCES placements(id) ON DELETE CASCADE
+);
+
+-- 7. Evaluations Table
+CREATE TABLE evaluations (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    placement_id INT NOT NULL,
