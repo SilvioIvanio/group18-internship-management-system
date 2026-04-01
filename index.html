@@ -48,3 +48,73 @@
 
         <div class="auth-right">
             <div class="auth-card">
+                <div class="auth-tabs">
+                    <div class="auth-tab active" id="tab-login" onclick="switchTab('login')">Sign in</div>
+                    <div class="auth-tab" id="tab-register" onclick="switchTab('register')">Register</div>
+                </div>
+
+                <!-- LOGIN FORM -->
+                <div id="form-login">
+                    <div class="auth-title">Welcome back</div>
+                    <div class="auth-sub">Sign in to your DIMS portal</div>
+                    <div class="f-group">
+                        <label class="f-label">Email address</label>
+                        <input class="f-input" type="email" id="li-email" placeholder="e.g. tjihezu@nust.na">
+                    </div>
+                    <div class="f-group">
+                        <label class="f-label">Password</label>
+                        <input class="f-input" type="password" id="li-pass" placeholder="••••••••">
+                    </div>
+                    <div style="margin-bottom:16px">
+                        <label class="f-label">Sign in as</label>
+                        <div class="role-grid">
+                            <div class="r-chip sel" data-role="student" onclick="selRole(this)">
+                                <div class="r-chip-icon">🎓</div>Student
+                            </div>
+                            <div class="r-chip" data-role="employer" onclick="selRole(this)">
+                                <div class="r-chip-icon">🏢</div>Employer
+                            </div>
+                            <div class="r-chip" data-role="ceu" onclick="selRole(this)">
+                                <div class="r-chip-icon">🛠️</div>CEU Staff
+                            </div>
+                            <div class="r-chip" data-role="lecturer" onclick="selRole(this)">
+                                <div class="r-chip-icon">📚</div>Lecturer
+                            </div>
+                            <div class="r-chip" data-role="management" onclick="selRole(this)">
+                                <div class="r-chip-icon">📊</div>Management
+                            </div>
+                        </div>
+                    </div>
+                    <button class="btn-auth" onclick="doLogin()">Sign in <span>→</span></button>
+                    <div style="text-align:center;margin-top:14px;font-size:12px;color:var(--muted)">
+                        Forgot your password? <a href="#" style="color:var(--accent);font-weight:600"
+                            onclick="toast('📧 Password reset request sent to CEU administrator.')">Reset it</a>
+                    </div>
+                </div>
+
+                <!-- REGISTER FORM -->
+                <div id="form-register" style="display:none">
+                    <div class="auth-title">Create account</div>
+                    <div class="auth-sub">Students register here — staff accounts are created by CEU</div>
+                    <div class="f-row">
+                        <div class="f-group"><label class="f-label">First name</label><input id="re-fname" class="f-input"
+                                placeholder="e.g. Tjihezu"></div>
+                        <div class="f-group"><label class="f-label">Last name</label><input id="re-lname" class="f-input"
+                                placeholder="e.g. Tjihozu"></div>
+                    </div>
+                    <div class="f-group"><label class="f-label">Student number</label><input id="re-student-no" class="f-input"
+                            placeholder="e.g. 223127418"></div>
+                    <div class="f-group"><label class="f-label">NUST email address</label><input id="re-email" class="f-input"
+                            type="email" placeholder="student@nust.na">
+                        <div class="f-hint">Must be your official @nust.na email</div>
+                    </div>
+                    <div class="f-group">
+                        <label class="f-label">Programme</label>
+                        <select id="re-programme" class="f-select">
+                            <option value="">— Select your programme —</option>
+                            <option>BSc Computer Science</option>
+                            <option>BSc Information Technology</option>
+                            <option>BEng Electrical Engineering</option>
+                            <option>BCom Finance</option>
+                            <option>BCom Accounting</option>
+                            <option>BEng Mechanical Engineering</option>
