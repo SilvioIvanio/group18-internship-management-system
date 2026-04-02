@@ -178,3 +178,64 @@
                     </div>
                 </div>
             </div>
+        </header>
+
+        <!-- NOTIFICATION PANEL -->
+        <div class="notif-panel" id="notif-panel">
+            <div class="np-head">
+                <div class="np-title">Notifications</div>
+                <div class="np-actions">
+                    <button class="btn btn-ghost btn-sm" onclick="markAllRead()">Mark all read</button>
+                    <button class="np-close" onclick="closeNotifPanel()">✕</button>
+                </div>
+            </div>
+            <div class="np-body" id="notif-list"></div>
+            <div class="np-foot">
+                <button class="btn btn-outline btn-sm btn-full"
+                    onclick="closeNotifPanel();showPage('notifications')">View all
+                    notifications</button>
+            </div>
+        </div>
+
+        <div class="body-wrap">
+            <!-- SIDEBAR -->
+            <nav class="sidebar" id="sidebar">
+                <div class="sb-scroll" id="sb-scroll"></div>
+                <div class="sb-footer">
+                    <div class="sb-user" onclick="showPage('profile')">
+                        <div class="sb-avatar" id="sb-avatar">TT</div>
+                        <div class="sb-user-info">
+                            <div class="sb-user-name" id="sb-name">Tjihezu Tjihozu</div>
+                            <div class="sb-user-role" id="sb-role">Student</div>
+                        </div>
+                        <span style="color:var(--muted);font-size:11px">›</span>
+                    </div>
+                    <button class="sb-logout-btn" onclick="confirmLogout()">🚪 Sign out</button>
+                </div>
+            </nav>
+
+            <!-- MAIN -->
+            <main class="main" id="main"></main>
+        </div>
+    </div>
+
+    <!-- MODAL -->
+    <div class="modal-bg" id="modal-bg" onclick="closeBgModal(event)">
+        <div class="modal" id="modal-box">
+            <div class="modal-title" id="modal-title"></div>
+            <div class="modal-sub" id="modal-sub" style="display:none"></div>
+            <div id="modal-body"></div>
+            <div class="modal-actions" id="modal-actions"></div>
+        </div>
+    </div>
+
+    <!-- OVERLAY (close panels) -->
+    <div class="panel-overlay" id="panel-overlay" onclick="closeAllPanels()"></div>
+
+    <!-- TOAST -->
+    <div class="toast" id="toast"></div>
+
+    <script src="js/app.js"></script>
+</body>
+
+</html>
