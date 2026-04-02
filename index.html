@@ -118,3 +118,63 @@
                             <option>BCom Finance</option>
                             <option>BCom Accounting</option>
                             <option>BEng Mechanical Engineering</option>
+                            <option>BSc Quantity Surveying</option>
+                        </select>
+                    </div>
+                    <div class="f-group">
+                        <label class="f-label">Year of study</label>
+                        <select id="re-year" class="f-select">
+                            <option>1st Year</option>
+                            <option>2nd Year</option>
+                            <option selected>3rd Year</option>
+                            <option>4th Year</option>
+                        </select>
+                    </div>
+                    <div class="f-row">
+                        <div class="f-group"><label class="f-label">Password</label><input id="re-pass" class="f-input"
+                                type="password" placeholder="Min. 8 characters"></div>
+                        <div class="f-group"><label class="f-label">Confirm password</label><input id="re-pass-confirm" class="f-input"
+                                type="password" placeholder="Repeat password"></div>
+                    </div>
+                    <button class="btn-auth" onclick="doRegister()">Create account <span>→</span></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════════════ APP ═══════════════════ -->
+    <div id="app">
+        <!-- TOPBAR -->
+        <header class="topbar">
+            <div class="tb-brand">
+                <div class="tb-brand-dot"></div>DIMS
+            </div>
+            <div class="tb-divider"></div>
+            <span class="tb-role" id="tb-role">Student</span>
+            <div class="tb-spacer"></div>
+            <div class="tb-search" onclick="globalSearch()">
+                <span>🔍</span> <span>Search…</span> <kbd>⌘K</kbd>
+            </div>
+            <button class="tb-btn" id="notif-btn" onclick="toggleNotifPanel()">
+                🔔<span class="tb-badge" id="notif-count">3</span>
+            </button>
+            <div class="tb-avatar-wrap">
+                <div class="tb-avatar" id="tb-avatar" onclick="toggleUserDropdown()">TT</div>
+                <div class="user-dropdown" id="user-dropdown">
+                    <div class="ud-header">
+                        <div class="ud-name" id="ud-name">Tjihezu Tjihozu</div>
+                        <div class="ud-email" id="ud-email">tjihezu@nust.na</div>
+                        <div class="ud-role" id="ud-role">Student</div>
+                    </div>
+                    <div class="ud-item" onclick="closeDropdown();showPage('profile')"><span
+                            class="ud-item-icon">👤</span>My
+                        profile</div>
+                    <div class="ud-item" onclick="closeDropdown();showPage('settings')"><span
+                            class="ud-item-icon">⚙️</span>Settings</div>
+                    <div class="ud-item" onclick="closeDropdown();toast('📥 Downloading activity report…')"><span
+                            class="ud-item-icon">📥</span>Download report</div>
+                    <div class="ud-sep"></div>
+                    <div class="ud-item danger" onclick="confirmLogout()"><span class="ud-item-icon">🚪</span>Sign out
+                    </div>
+                </div>
+            </div>
