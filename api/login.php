@@ -13,3 +13,8 @@ $result = $stmt->get_result();
 if ($row = $result->fetch_assoc()) {
     if (password_verify($password, $row['password'])) {
         unset($row['password']);
+        echo json_encode(["status" => "success", "user" => $row]);
+    } else {
+        echo json_encode(["status" => "error", "message" => "Invalid credentials"]);
+    }
+} else {
