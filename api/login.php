@@ -18,3 +18,6 @@ if ($row = $result->fetch_assoc()) {
         echo json_encode(["status" => "error", "message" => "Invalid credentials"]);
     }
 } else {
+    echo json_encode(["status" => "error", "message" => "Invalid credentials"]);
+}
+?>
