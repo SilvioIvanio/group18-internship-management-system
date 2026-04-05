@@ -78,3 +78,173 @@ textarea {
    SCROLLBAR
 ═══════════════════════════════════════ */
 ::-webkit-scrollbar {
+    width: 5px;
+    height: 5px
+}
+
+::-webkit-scrollbar-track {
+    background: transparent
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--border2);
+    border-radius: 10px
+}
+
+/* ═══════════════════════════════════════
+   LOGIN / REGISTER SCREEN
+═══════════════════════════════════════ */
+#auth-screen {
+    position: fixed;
+    inset: 0;
+    z-index: 999;
+    display: flex;
+    background: var(--navy);
+    transition: opacity .45s var(--ease), transform .45s var(--ease);
+}
+
+#auth-screen.hidden {
+    opacity: 0;
+    pointer-events: none;
+    transform: scale(.98)
+}
+
+/* Left panel */
+.auth-left {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 48px 52px;
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(150deg, var(--navy) 0%, var(--navy-soft) 100%);
+}
+
+.auth-left::before {
+    content: '';
+    position: absolute;
+    top: -120px;
+    right: -120px;
+    width: 500px;
+    height: 500px;
+    border-radius: 50%;
+    border: 1px solid rgba(14, 165, 233, .08);
+    box-shadow: 0 0 0 80px rgba(14, 165, 233, .04), 0 0 0 160px rgba(14, 165, 233, .02);
+    pointer-events: none;
+}
+
+.auth-left::after {
+    content: '';
+    position: absolute;
+    bottom: -80px;
+    left: -80px;
+    width: 300px;
+    height: 300px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(20, 184, 166, .08), transparent 70%);
+    pointer-events: none;
+}
+
+.al-brand {
+    font-family: 'Outfit', sans-serif;
+    font-size: 22px;
+    font-weight: 800;
+    color: #fff;
+    letter-spacing: -.3px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.al-brand-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 2px;
+    background: linear-gradient(135deg, var(--accent), var(--teal));
+}
+
+.al-main {
+    position: relative;
+    z-index: 1
+}
+
+.al-eyebrow {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 16px
+}
+
+.al-headline {
+    font-family: 'Outfit', sans-serif;
+    font-size: 40px;
+    font-weight: 800;
+    color: #fff;
+    line-height: 1.1;
+    margin-bottom: 20px;
+}
+
+.al-headline em {
+    font-style: normal;
+    background: linear-gradient(90deg, var(--accent), var(--teal));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.al-sub {
+    font-size: 14px;
+    color: rgba(255, 255, 255, .5);
+    line-height: 1.75;
+    max-width: 380px
+}
+
+.al-stats {
+    display: flex;
+    gap: 40px;
+    padding-top: 8px
+}
+
+.al-stat-n {
+    font-family: 'Outfit', sans-serif;
+    font-size: 26px;
+    font-weight: 800;
+    color: #fff
+}
+
+.al-stat-l {
+    font-size: 11px;
+    color: rgba(255, 255, 255, .4);
+    margin-top: 2px
+}
+
+.al-footer {
+    font-size: 11px;
+    color: rgba(255, 255, 255, .25);
+    position: relative;
+    z-index: 1
+}
+
+/* Right panel */
+.auth-right {
+    width: 460px;
+    flex-shrink: 0;
+    background: var(--white);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 48px 40px;
+    overflow-y: auto;
+}
+
+.auth-card {
+    width: 100%;
+    animation: authIn .5s var(--ease)
+}
+
+@keyframes authIn {
+    from {
+        opacity: 0;
