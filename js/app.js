@@ -148,3 +148,253 @@ async function doRegister() {
         } else {
             toast('❌ ' + result.message);
         }
+    } catch(e) {
+        toast('❌ Server connection failed.');
+    }
+}
+
+function bootApp() {
+    if (!currentUser) currentUser = USERS[role] || { name: 'Guest', email: 'guest@nust.na' };
+    currentUser.initials = currentUser.name.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase();
+    currentUser.roleName = role.charAt(0).toUpperCase() + role.slice(1);
+    const u = currentUser;
+    // populate topbar
+    document.getElementById('tb-role').textContent = u.roleName;
+    document.getElementById('tb-avatar').textContent = u.initials;
+    document.getElementById('ud-name').textContent = u.name;
+    document.getElementById('ud-email').textContent = u.email;
+    document.getElementById('ud-role').textContent = u.roleName;
+    // populate sidebar footer
+    document.getElementById('sb-avatar').textContent = u.initials;
+    document.getElementById('sb-name').textContent = u.name;
+    document.getElementById('sb-role').textContent = u.roleName;
+    // notification count
+    const unread = (NOTIFICATIONS[role] || []).filter(n => !n.read).length;
+    const nb = document.getElementById('notif-count');
+    if (unread > 0) { nb.textContent = unread; nb.style.display = 'flex'; } else { nb.style.display = 'none'; }
+    buildSidebar();
+    buildNotifPanel();
+    document.getElementById('auth-screen').classList.add('hidden');
+    document.getElementById('app').classList.add('on');
+    showPage('dashboard');
+}
+
+function logout() {
+    closeAllPanels();
+    document.getElementById('app').classList.remove('on');
+    document.getElementById('auth-screen').classList.remove('hidden');
+    role = 'student';
+    currentUser = null;
+    document.querySelectorAll('.r-chip').forEach(c => c.classList.remove('sel'));
+    document.querySelector('[data-role="student"]').classList.add('sel');
+    setTimeout(() => { document.getElementById('main').innerHTML = ''; }, 300);
+}
+
+function confirmLogout() {
+    closeDropdown();
+    openModal({
+        title: 'Sign out of DIMS?',
+        sub: 'You will be returned to the sign-in screen.',
+        body: `<div class="confirm-dialog"><div class="confirm-icon">🚪</div></div>`,
+        actions: `<button class="btn btn-outline" onclick="closeModal()">Cancel</button>
+             <button class="btn btn-danger" onclick="closeModal();logout()">Yes, sign out</button>`
+    });
+}
+
+/* ══════════════════════════════════════
+   SIDEBAR
+══════════════════════════════════════ */
+function buildSidebar() {
+    const sb = document.getElementById('sb-scroll');
+    sb.innerHTML = SIDEBARS[role].map(item => {
+        if (item.sec) return `<div class="sb-sec">${item.sec}</div>`;
+        const badgeCls = item.badgeStyle === 'info' ? 'nav-badge info' : 'nav-badge';
+        return `<div class="nav-item" id="nav-${item.id}" onclick="showPage('${item.id}')">
+      <span class="nav-icon">${item.icon}</span>
+      <span>${item.label}</span>
+      ${item.badge ? `<span class="${badgeCls}">${item.badge}</span>` : ''}
+    </div>`;
+    }).join('');
+}
+
+function setNav(id) {
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    const el = document.getElementById('nav-' + id);
+    if (el) { el.classList.add('active'); el.scrollIntoView({ block: 'nearest' }) }
+}
+
+/* ══════════════════════════════════════
+   ROUTER
+══════════════════════════════════════ */
+async function showPage(id) {
+    setNav(id);
+    closeAllPanels();
+    const el = document.getElementById('main');
+    const r = PAGES[role]?.[id];
+    if (r) {
+        el.innerHTML = '<div style="padding:40px;text-align:center;color:var(--muted)">Loading...</div>';
+        try {
+            el.innerHTML = await r();
+        } catch (e) {
+            console.error(e);
+            el.innerHTML = '<div class="empty"><div class="empty-icon">⚠️</div><div class="empty-title">Error loading page</div><div class="empty-text">Failed to fetch data from server.</div></div>';
+        }
+    } else {
+        el.innerHTML = `<div class="empty"><div class="empty-icon">🚧</div><div class="empty-title">Page not yet available</div><div class="empty-text">This feature is coming in the next sprint.</div></div>`;
+    }
+    setTimeout(() => { if (typeof initCharts === 'function') initCharts(); }, 50);
+}
+
+/* ══════════════════════════════════════
+   NOTIFICATIONS
+══════════════════════════════════════ */
+async function buildNotifPanel() {
+    const list = document.getElementById('notif-list');
+    if (!list) return;
+    try {
+        let res = await fetch('api/notifications.php?user_id=' + currentUser.id);
+        let items = (await res.json()).data || [];
+        if (!items.length) { list.innerHTML = `<div class="np-empty">🎉<br>You're all caught up!</div>`; return; }
+        list.innerHTML = items.map(n => `
+        <div class="np-item ${n.is_read ? '' : 'unread'}" onclick="markRead(${n.id})">
+          <div class="np-icon info">🔔</div>
+          <div>
+            <div class="np-text">${n.message}</div>
+            <div class="np-time">${n.created_at}</div>
+          </div>
+        </div>`).join('');
+    } catch (e) {
+        list.innerHTML = `<div class="np-empty">⚠️<br>Failed to load</div>`;
+    }
+}
+
+async function markRead(id) {
+    await buildNotifPanel();
+    await updateNotifBadge();
+}
+
+async function markAllRead() {
+    toast('✅ All notifications marked as read.');
+    await buildNotifPanel();
+    await updateNotifBadge();
+}
+
+async function updateNotifBadge() {
+    try {
+        let res = await fetch('api/notifications.php?user_id=' + currentUser.id);
+        let items = (await res.json()).data || [];
+        const unread = items.filter(n => !n.is_read).length;
+        const nb = document.getElementById('notif-count');
+        if (nb) {
+            if (unread > 0) { nb.textContent = unread; nb.style.display = 'flex'; } 
+            else { nb.style.display = 'none'; }
+        }
+        
+        // Dynamically clear/update any sidebar nav badges that represent notifications
+        document.querySelectorAll('.nav-badge.info').forEach(b => {
+            b.textContent = unread > 0 ? unread : '';
+            b.style.display = unread > 0 ? 'inline-flex' : 'none';
+        });
+    } catch(e) {}
+}
+
+function toggleNotifPanel() {
+    const p = document.getElementById('notif-panel');
+    const o = document.getElementById('panel-overlay');
+    const open = p.classList.contains('open');
+    closeAllPanels();
+    if (!open) { p.classList.add('open'); o.classList.add('on'); }
+}
+
+function closeNotifPanel() { document.getElementById('notif-panel').classList.remove('open'); document.getElementById('panel-overlay').classList.remove('on'); }
+
+/* ══════════════════════════════════════
+   USER DROPDOWN
+══════════════════════════════════════ */
+function toggleUserDropdown() {
+    const d = document.getElementById('user-dropdown');
+    const open = d.classList.contains('open');
+    closeAllPanels();
+    if (!open) { d.classList.add('open'); document.getElementById('panel-overlay').classList.add('on'); }
+}
+function closeDropdown() { document.getElementById('user-dropdown').classList.remove('open'); }
+
+function closeAllPanels() {
+    document.getElementById('notif-panel').classList.remove('open');
+    document.getElementById('user-dropdown').classList.remove('open');
+    document.getElementById('panel-overlay').classList.remove('on');
+}
+
+/* ══════════════════════════════════════
+   MODAL
+══════════════════════════════════════ */
+function openModal({ title, sub, body, actions, size }) {
+    document.getElementById('modal-title').textContent = title || '';
+    const subEl = document.getElementById('modal-sub');
+    if (sub) { subEl.textContent = sub; subEl.style.display = ''; } else { subEl.style.display = 'none'; }
+    document.getElementById('modal-body').innerHTML = body || '';
+    document.getElementById('modal-actions').innerHTML = actions || '';
+    const box = document.getElementById('modal-box');
+    box.className = 'modal' + (size ? ' ' + size : '');
+    document.getElementById('modal-bg').classList.add('open');
+}
+function closeModal() { document.getElementById('modal-bg').classList.remove('open'); }
+function closeBgModal(e) { if (e.target === document.getElementById('modal-bg')) closeModal(); }
+
+/* ══════════════════════════════════════
+   TOAST
+══════════════════════════════════════ */
+let toastTimer;
+function toast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg; t.classList.add('on');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => t.classList.remove('on'), 3500);
+}
+
+/* ══════════════════════════════════════
+   SHARED PAGES
+══════════════════════════════════════ */
+function settingsPage() {
+    return `
+  <div class="ph"><div class="ph-left"><div class="ph-title">Settings</div><div class="ph-sub">Manage your account preferences and security</div></div></div>
+  <div class="g2">
+    <div>
+      <div class="card">
+        <div class="settings-section">
+          <div class="settings-section-title">Account information</div>
+          <div class="f-group"><label class="f-label">Full name</label><input class="f-input" value="${USERS[role].name}"></div>
+          <div class="f-group"><label class="f-label">Email address</label><input class="f-input" type="email" value="${USERS[role].email}"></div>
+          <div class="f-group"><label class="f-label">Phone number</label><input class="f-input" type="tel" placeholder="+264 XX XXX XXXX"></div>
+          <div class="btn-group" style="margin-top:8px"><button class="btn btn-primary btn-sm" onclick="toast('✅ Profile updated successfully.')">Save changes</button></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="settings-section">
+          <div class="settings-section-title">Change password</div>
+          <div class="f-group"><label class="f-label">Current password</label><input class="f-input" type="password" placeholder="••••••••"></div>
+          <div class="f-group"><label class="f-label">New password</label><input class="f-input" type="password" placeholder="Min. 8 characters"></div>
+          <div class="f-group"><label class="f-label">Confirm new password</label><input class="f-input" type="password" placeholder="Repeat new password"></div>
+          <div class="btn-group" style="margin-top:8px"><button class="btn btn-primary btn-sm" onclick="toast('🔒 Password changed successfully.')">Update password</button></div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="card">
+        <div class="settings-section">
+          <div class="settings-section-title">Notifications</div>
+          <div class="settings-row"><div><div class="settings-row-label">Email notifications</div><div class="settings-row-desc">Receive updates via email</div></div><button class="toggle on" onclick="this.classList.toggle('on')"></button></div>
+          <div class="settings-row"><div><div class="settings-row-label">SMS alerts</div><div class="settings-row-desc">Critical placement updates via SMS</div></div><button class="toggle on" onclick="this.classList.toggle('on')"></button></div>
+          <div class="settings-row"><div><div class="settings-row-label">Logbook reminders</div><div class="settings-row-desc">Weekly reminder to submit entries</div></div><button class="toggle on" onclick="this.classList.toggle('on')"></button></div>
+          <div class="settings-row"><div><div class="settings-row-label">Application status updates</div><div class="settings-row-desc">Notify when applications change status</div></div><button class="toggle on" onclick="this.classList.toggle('on')"></button></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="settings-section">
+          <div class="settings-section-title">Security (NFR-01)</div>
+          <div class="settings-row"><div><div class="settings-row-label">Two-factor authentication</div><div class="settings-row-desc">Require OTP on each sign-in</div></div><button class="toggle" onclick="this.classList.toggle('on');toast(this.classList.contains('on')?'🔐 2FA enabled':'2FA disabled')"></button></div>
+          <div class="settings-row"><div><div class="settings-row-label">Active sessions</div><div class="settings-row-desc">1 active session (this device)</div></div><button class="btn btn-outline btn-sm" onclick="toast('✅ Other sessions signed out.')">Sign out others</button></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="settings-section-title" style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:12px">Danger zone</div>
