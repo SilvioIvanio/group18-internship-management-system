@@ -798,3 +798,403 @@ const PAGES = {
 
         settings: () => settingsPage(),
 
+        vaclist: async () => {
+    let res = await fetch('api/vacancies.php?employer_id=' + currentUser.id);
+    let data = await res.json();
+    let vacs = data.data || [];
+    return `
+    <div class="ph">
+      <div class="ph-left"><div class="ph-title">My vacancies</div><div class="ph-sub">Manage internship postings (FR-02)</div></div>
+      <div class="ph-actions"><button class="btn btn-primary" onclick="showPage('postvac')">+ Post vacancy</button></div>
+    </div>
+    <div class="card">
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Position</th><th>Slots</th><th>Deadline</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody>
+          ${vacs.length === 0 ? '<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:24px">No vacancies posted yet.</td></tr>' : vacs.map(v => `
+          <tr><td><strong>${v.title}</strong></td><td>${v.slots}</td><td>${v.deadline}</td><td><span class="badge ${v.status === 'Open' ? 'b-green' : v.status === 'Pending' ? 'b-amber' : 'b-gray'}">${v.status}</span></td><td><div class="btn-group"><button class="btn btn-outline btn-sm" onclick="window.currentVacancyId=${v.id};showPage('applicants')">Applicants</button><button class="btn btn-ghost btn-sm" onclick="toast('🗑 Function pending')">🗑</button></div></td></tr>
+          `).join('')}
+        </tbody>
+      </table></div>
+    </div>`;
+        },
+
+        postvac: () => `
+    <div class="ph"><div class="ph-left"><div class="ph-title">Post a vacancy</div><div class="ph-sub">New internship opportunities are reviewed by CEU before going live (FR-02)</div></div></div>
+    <div class="card">
+      <div class="f-row">
+        <div class="f-group"><label class="f-label">Position title *</label><input class="f-input" id="pv-title" placeholder="e.g. IT Support Intern"></div>
+        <div class="f-group"><label class="f-label">Department *</label><input class="f-input" id="pv-dept" placeholder="e.g. Information Technology"></div>
+      </div>
+      <div class="f-row" style="margin-top:10px">
+        <div class="f-group"><label class="f-label">Duration (months) *</label><input class="f-input" id="pv-dur" type="number" placeholder="6" min="1" max="12"></div>
+        <div class="f-group"><label class="f-label">Available slots *</label><input class="f-input" id="pv-slots" type="number" placeholder="2" min="1"></div>
+      </div>
+      <div class="f-row" style="margin-top:10px">
+        <div class="f-group"><label class="f-label">Application deadline *</label><input class="f-input" id="pv-deadline" type="date"></div>
+        <div class="f-group"><label class="f-label">Location *</label><input class="f-input" id="pv-location" value="Windhoek, Namibia"></div>
+      </div>
+      <div class="f-row" style="margin-top:10px">
+        <div class="f-group">
+          <label class="f-label">Field / sector *</label>
+          <select class="f-select" id="pv-sector"><option>IT & Software</option><option>Engineering</option><option>Finance</option><option>Marketing</option><option>Logistics</option><option>Other</option></select>
+        </div>
+        <div class="f-group"><label class="f-label">Remuneration</label><input class="f-input" id="pv-remun" placeholder="e.g. NAD 3,000/month or Unpaid"></div>
+      </div>
+      <div class="f-group" style="margin-top:10px">
+        <label class="f-label">Role description & requirements *</label>
+        <textarea class="f-textarea" id="pv-desc" style="height:120px" placeholder="Describe the role, responsibilities, and required skills…"></textarea>
+      </div>
+      <div class="btn-group" style="margin-top:14px">
+        <button class="btn btn-primary" onclick="submitNewVacancy()">Submit for review</button>
+        <button class="btn btn-ghost" onclick="showPage('vaclist')">Cancel</button>
+      </div>
+    </div>`,
+
+        applicants: async () => {
+        let res = await fetch('api/applications.php?employer_id=' + currentUser.id);
+        let data = await res.json();
+        let apps = data.data || [];
+        // Filter out applications for the current vacancy
+        let vacApps = apps.filter(a => a.vacancy_id == window.currentVacancyId);
+        return `
+    <div class="ph"><div class="ph-left"><div class="ph-title">Applicants</div><div class="ph-sub">Filter and update tracking statuses (FR-04)</div></div></div>
+    <div class="card">
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Student</th><th>Programme</th><th>Year</th><th>Applied</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody>
+          ${vacApps.length === 0 ? '<tr><td colspan="6" style="text-align:center;padding:24px">No applicants yet.</td></tr>' : vacApps.map(a => `
+          <tr><td><strong>${a.student_name}</strong></td><td>${a.programme || 'Unknown'}</td><td>${a.year_of_study || 'N/A'}</td><td>${a.applied_at}</td><td><span class="badge ${a.status==='Pending'?'b-amber':a.status==='Accepted'?'b-green':'b-blue'}">${a.status}</span></td><td><div class="btn-group"><button class="btn btn-success btn-sm" onclick="updateAppStatus(${a.id}, 'Accepted')">Accept</button><button class="btn btn-outline btn-sm" onclick="updateAppStatus(${a.id}, 'Shortlisted')">Shortlist</button><button class="btn btn-danger btn-sm" onclick="updateAppStatus(${a.id}, 'Rejected')">Reject</button></div></td></tr>
+          `).join('')}
+        </tbody>
+      </table></div>
+    </div>`;
+        },
+
+        interns: () => `
+    <div class="ph"><div class="ph-left"><div class="ph-title">Active interns</div><div class="ph-sub">Monitor your current WIL students</div></div></div>
+    <div class="card">
+      <div style="display:flex;gap:14px;align-items:flex-start">
+        <div class="profile-avatar" style="width:52px;height:52px;font-size:18px">TT</div>
+        <div style="flex:1">
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+            <div style="font-size:15px;font-weight:700;color:var(--navy)">Tjihezu Tjihozu</div>
+            <span class="badge b-green"><span class="b-dot"></span>Active</span>
+          </div>
+          <div style="font-size:12px;color:var(--muted);margin-top:2px">IT Support Intern &nbsp;·&nbsp; BSc Computer Science &nbsp;·&nbsp; 01 Feb – 30 Jun 2025</div>
+          <dl class="dl" style="margin-top:14px">
+            <dt>Student No.</dt><dd>223127418</dd>
+            <dt>Logbook entries</dt><dd>14 submitted &nbsp;&nbsp;<span class="badge b-amber">2 pending approval</span></dd>
+            <dt>Mid-term score</dt><dd><strong style="color:var(--accent)">78/100</strong></dd>
+            <dt>Lecturer</dt><dd>Dr. A. Tjihambuma</dd>
+          </dl>
+          <div style="margin-top:14px"><div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:5px"><span>Internship progress</span><span>65%</span></div>
+          <div class="prog-bar"><div class="prog-fill" style="width:65%"></div></div></div>
+          <div class="btn-group" style="margin-top:14px">
+            <button class="btn btn-primary btn-sm" onclick="showPage('evaluate')">Submit evaluation</button>
+            <button class="btn btn-outline btn-sm" onclick="toast('📓 Logbook entries opened.')">View logbook</button>
+          </div>
+        </div>
+      </div>
+    </div>`,
+
+        evaluate: () => `
+    <div class="ph"><div class="ph-left"><div class="ph-title">Submit evaluation</div><div class="ph-sub">Employer performance evaluation form (FR-07)</div></div></div>
+    <div class="card">
+      <div class="f-row">
+        <div class="f-group"><label class="f-label">Intern *</label><select class="f-select"><option>Tjihezu Tjihozu — IT Support Intern</option></select></div>
+        <div class="f-group"><label class="f-label">Evaluation type *</label><select class="f-select" id="eval-type"><option>Mid-term evaluation</option><option>Final evaluation</option></select></div>
+      </div>
+      <div style="margin-top:14px;margin-bottom:6px;font-size:12px;font-weight:700;color:var(--text2)">Overall Performance Score (0–100)</div>
+      <div class="f-row">
+        <div class="f-group"><label class="f-label">Score</label><input id="eval-score" class="f-input" type="number" value="85" min="0" max="100"></div>
+      </div>
+      <div class="f-group" style="margin-top:10px">
+        <label class="f-label">Detailed comments *</label>
+        <textarea id="eval-feedback" class="f-textarea" style="height:120px" placeholder="Provide a thorough assessment of the intern's performance…"></textarea>
+      </div>
+      <div class="btn-group" style="margin-top:16px">
+        <button class="btn btn-primary" onclick="submitEvaluation()">Submit evaluation</button>
+        <button class="btn btn-outline" onclick="showPage('interns')">Cancel</button>
+      </div>
+    </div>`,
+    },
+
+    /* ─────────────────────────────────────
+       CEU STAFF
+    ───────────────────────────────────── */
+    ceu: {
+        dashboard: () => `
+    <div class="hero">
+      <div class="hero-title">CEU Operations dashboard 🛠️</div>
+      <div class="hero-sub">Cooperative Education Unit &nbsp;·&nbsp; Ms. P. Shikongo &nbsp;·&nbsp; Semester 1, 2025</div>
+    </div>
+    <div class="stats">
+      <div class="stat c-blue"><div class="stat-label">Total students</div><div class="stat-val blue">158</div><div class="stat-trend up">↑ 9% YoY</div></div>
+      <div class="stat c-green"><div class="stat-label">Placements confirmed</div><div class="stat-val green">130</div><div class="stat-trend up">↑ 82% rate</div></div>
+      <div class="stat c-amber"><div class="stat-label">Pending approvals</div><div class="stat-val amber">7</div><div class="stat-sub">Requires action</div></div>
+      <div class="stat c-teal"><div class="stat-label">Partner employers</div><div class="stat-val teal">31</div><div class="stat-sub">From 230+ MoUs</div></div>
+    </div>
+    <div class="g2">
+      <div class="card">
+        <div class="card-head"><div class="card-title">🔔 Pending approvals</div><span class="card-action" onclick="showPage('approvals')">View all 7 →</span></div>
+        <div class="tbl-wrap"><table>
+          <thead><tr><th>Student</th><th>Employer</th><th>Actions</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Dyrall Beukes</strong></td><td>MTC Namibia</td><td><div class="btn-group"><button class="btn btn-success btn-sm" onclick="toast('✅ Approved!')">Approve</button><button class="btn btn-danger btn-sm" onclick="toast('❌ Rejected')">Reject</button></div></td></tr>
+            <tr><td><strong>Pascal Tandula</strong></td><td>Bank Windhoek</td><td><div class="btn-group"><button class="btn btn-success btn-sm" onclick="toast('✅ Approved!')">Approve</button><button class="btn btn-danger btn-sm" onclick="toast('❌ Rejected')">Reject</button></div></td></tr>
+            <tr><td><strong>Silvio Ivano</strong></td><td>Telecom Namibia</td><td><div class="btn-group"><button class="btn btn-success btn-sm" onclick="toast('✅ Approved!')">Approve</button><button class="btn btn-danger btn-sm" onclick="toast('❌ Rejected')">Reject</button></div></td></tr>
+          </tbody>
+        </table></div>
+      </div>
+      <div class="card">
+        <div class="card-head"><div class="card-title">⚡ Quick actions</div></div>
+        <div class="btn-group" style="flex-direction:column;align-items:stretch">
+          <button class="btn btn-primary" onclick="showPage('approvals')">✅ Process approvals <span class="badge b-red" style="margin-left:auto">7</span></button>
+          <button class="btn btn-outline" onclick="showPage('students')">🎓 Student directory</button>
+          <button class="btn btn-outline" onclick="showPage('vacancies2')">📋 Review new vacancies</button>
+          <button class="btn btn-outline" onclick="showPage('reports')">📊 Generate semester report</button>
+          <button class="btn btn-outline" onclick="showPage('accounts')">👥 Manage user accounts</button>
+        </div>
+      </div>
+    </div>`,
+
+        profile: async () => {
+    let res = await fetch('api/profile.php?user_id=' + currentUser.id);
+    let p = (await res.json()).data || {};
+    let names = (p.name || '').split(' ');
+    let fname = names[0] || '';
+    let lname = names.slice(1).join(' ') || '';
+    let initials = fname.charAt(0) + (lname.charAt(0) || '');
+    return `
+    <div class="ph"><div class="ph-left"><div class="ph-title">My profile</div></div></div>
+    <div class="card">
+      <div style="display:flex;align-items:center;gap:16px;margin-bottom:20px">
+        <div class="profile-avatar">${initials.toUpperCase()}</div>
+        <div><div style="font-size:17px;font-weight:700;color:var(--navy)">${p.name || ''}</div><div style="font-size:13px;color:var(--muted)">CEU Staff · Cooperative Education Unit</div></div>
+      </div>
+      <div class="f-row">
+        <div class="f-group"><label class="f-label">First name</label><input class="f-input" value="${fname}"></div>
+        <div class="f-group"><label class="f-label">Last name</label><input class="f-input" value="${lname}"></div>
+      </div>
+      <div class="f-group" style="margin-top:10px"><label class="f-label">Email</label><input class="f-input" value="${p.email || ''}"></div>
+      <div class="f-group" style="margin-top:10px"><label class="f-label">Phone</label><input class="f-input" value="${p.phone || ''}"></div>
+      <div class="btn-group" style="margin-top:14px"><button class="btn btn-primary" onclick="updateProfileGlobal()">Save changes</button></div>
+    </div>`;
+        },
+
+        settings: () => settingsPage(),
+
+        approvals: async () => {
+    let res = await fetch('api/applications.php?employer_id=0');
+    let data = await res.json();
+    let apps = data.data || [];
+    let pending = apps.filter(a => a.status === 'Accepted');
+    return `
+    <div class="ph"><div class="ph-left"><div class="ph-title">Pending approvals</div><div class="ph-sub">${pending.length} placements require CEU review and sign-off</div></div></div>
+    <div class="card">
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Student</th><th>Employer</th><th>Role</th><th>Submitted</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody>
+          ${pending.length === 0 ? '<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--muted)">No pending approvals.</td></tr>' : pending.map(a => `
+          <tr><td><strong>${a.student_name}</strong></td><td>${a.employer_name}</td><td>${a.title}</td><td>${a.applied_at}</td><td><span class="badge b-amber">Pending approval</span></td><td><div class="btn-group"><button class="btn btn-success btn-sm" onclick="ceuApproveApp(${a.id})">Approve Placement</button><button class="btn btn-danger btn-sm" onclick="updateAppStatus(${a.id}, 'Rejected')">Reject</button></div></td></tr>
+          `).join('')}
+        </tbody>
+      </table></div>
+    </div>`;
+        },
+
+        placements: () => `
+    <div class="ph"><div class="ph-left"><div class="ph-title">All placements</div><div class="ph-sub">130 confirmed placements this semester</div></div></div>
+    <div class="chips"><div class="chip on" onclick="filterChip(this)">All</div><div class="chip" onclick="filterChip(this)">Active</div><div class="chip" onclick="filterChip(this)">Completed</div><div class="chip" onclick="filterChip(this)">Pending</div><div class="chip" onclick="filterChip(this)">Terminated</div></div>
+    <div class="card">
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Student</th><th>Employer</th><th>Role</th><th>Period</th><th>Lecturer</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Tjihezu Tjihozu</strong></td><td>Namibia Breweries</td><td>IT Support Intern</td><td>Feb–Jun 2025</td><td>Dr. Tjihambuma</td><td><span class="badge b-green"><span class="b-dot"></span>Active</span></td><td><button class="btn btn-ghost btn-sm" onclick="toast('📌 Placement details opened.')">View</button></td></tr>
+          <tr><td><strong>Alisha Tjihambuma</strong></td><td>FNB Namibia</td><td>Finance Intern</td><td>Jan–Jun 2025</td><td>Dr. Tjihambuma</td><td><span class="badge b-green"><span class="b-dot"></span>Active</span></td><td><button class="btn btn-ghost btn-sm">View</button></td></tr>
+          <tr><td><strong>Anselmo Martins</strong></td><td>NamPost</td><td>Logistics Intern</td><td>Feb–Jul 2025</td><td>Mr. Hamutenya</td><td><span class="badge b-amber"><span class="b-dot"></span>Pending</span></td><td><button class="btn btn-ghost btn-sm">View</button></td></tr>
+        </tbody>
+      </table></div>
+    </div>`,
+
+        students: () => `
+    <div class="ph"><div class="ph-left"><div class="ph-title">Student directory</div><div class="ph-sub">158 registered students this semester</div></div>
+    <div class="ph-actions"><button class="btn btn-outline btn-sm" onclick="exportCSV()">Export CSV</button></div></div>
+    <div class="search-wrap"><span class="search-ico">🔍</span><input placeholder="Search by name, student number, or programme…"></div>
+    <div class="card">
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Name</th><th>Student No.</th><th>Programme</th><th>Faculty</th><th>Placement</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Tjihezu Tjihozu</strong></td><td>223127418</td><td>BSc CS</td><td>Computing</td><td>Namibia Breweries</td><td><span class="badge b-green">Placed</span></td><td><button class="btn btn-ghost btn-sm" onclick="toast('👤 Student profile opened.')">View</button></td></tr>
+          <tr><td><strong>Dyrall Beukes</strong></td><td>223058467</td><td>BEng Electrical</td><td>Engineering</td><td>MTC Namibia (pending)</td><td><span class="badge b-amber">Pending</span></td><td><button class="btn btn-ghost btn-sm">View</button></td></tr>
+          <tr><td><strong>Alisha Tjihambuma</strong></td><td>224047655</td><td>BCom Finance</td><td>Commerce</td><td>FNB Namibia</td><td><span class="badge b-green">Placed</span></td><td><button class="btn btn-ghost btn-sm">View</button></td></tr>
+          <tr><td><strong>Silvio Ivano</strong></td><td>224046179</td><td>BSc CS</td><td>Computing</td><td>Telecom Namibia</td><td><span class="badge b-amber">Docs missing</span></td><td><button class="btn btn-ghost btn-sm">View</button></td></tr>
+          <tr><td><strong>Anselmo Martins</strong></td><td>224065955</td><td>BSc IT</td><td>Computing</td><td>NamPost</td><td><span class="badge b-amber">Pending</span></td><td><button class="btn btn-ghost btn-sm">View</button></td></tr>
+          <tr><td><strong>Pascal Tandula</strong></td><td>224084038</td><td>BSc IT</td><td>Computing</td><td>Bank Windhoek</td><td><span class="badge b-amber">Pending</span></td><td><button class="btn btn-ghost btn-sm">View</button></td></tr>
+        </tbody>
+      </table></div>
+    </div>`,
+
+        employers2: () => `
+    <div class="ph"><div class="ph-left"><div class="ph-title">Employer directory</div><div class="ph-sub">31 active partners · 230+ MoUs signed</div></div>
+    <div class="ph-actions"><button class="btn btn-primary btn-sm" onclick="toast('+ Add new employer partner')">+ Add employer</button></div></div>
+    <div class="search-wrap"><span class="search-ico">🔍</span><input placeholder="Search employers…"></div>
+    <div class="card">
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Company</th><th>Sector</th><th>Interns 2025</th><th>MoU status</th><th>Contact</th><th>Actions</th></tr></thead>
+        <tbody>
+          <tr><td><strong>MTC Namibia</strong></td><td>Telecoms</td><td>8</td><td><span class="badge b-green">Verified</span></td><td>hr@mtc.com.na</td><td><div class="btn-group"><button class="btn btn-ghost btn-sm" onclick="toast('🏢 MTC profile opened.')">Edit</button><button class="btn btn-ghost btn-sm" onclick="toast('📧 Email sent to MTC.')">Contact</button></div></td></tr>
+          <tr><td><strong>Bank Windhoek</strong></td><td>Finance</td><td>6</td><td><span class="badge b-green">Verified</span></td><td>hr@bankwindhoek.com.na</td><td><div class="btn-group"><button class="btn btn-ghost btn-sm">Edit</button><button class="btn btn-ghost btn-sm">Contact</button></div></td></tr>
+          <tr><td><strong>NamPost</strong></td><td>Logistics</td><td>3</td><td><span class="badge b-amber">Renewal pending</span></td><td>hr@nampost.com.na</td><td><div class="btn-group"><button class="btn btn-outline btn-sm" onclick="toast('📋 MoU renewal sent.')">Renew MoU</button><button class="btn btn-ghost btn-sm">Contact</button></div></td></tr>
+        </tbody>
+      </table></div>
+    </div>`,
+
+        vacancies2: () => `
+    <div class="ph"><div class="ph-left"><div class="ph-title">Vacancy management</div><div class="ph-sub">Review and approve employer vacancies before publication</div></div></div>
+    <div class="card">
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Position</th><th>Employer</th><th>Field</th><th>Slots</th><th>Deadline</th><th>CEU status</th><th>Actions</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Systems Admin Intern</strong></td><td>Namibia Breweries</td><td>IT</td><td>1</td><td>30 May 2025</td><td><span class="badge b-green">Published</span></td><td><div class="btn-group"><button class="btn btn-ghost btn-sm" onclick="toast('📋 Vacancy details opened.')">View</button><button class="btn btn-danger btn-sm" onclick="confirmDelete('vacancy')">Remove</button></div></td></tr>
+          <tr><td><strong>Finance Graduate Intern</strong></td><td>Standard Bank</td><td>Finance</td><td>2</td><td>01 Jun 2025</td><td><span class="badge b-amber">Pending review</span></td><td><div class="btn-group"><button class="btn btn-success btn-sm" onclick="toast('✅ Vacancy approved & published!')">Approve</button><button class="btn btn-danger btn-sm" onclick="toast('❌ Vacancy rejected. Employer notified.')">Reject</button></div></td></tr>
+        </tbody>
+      </table></div>
+    </div>`,
+
+        accounts: () => `
+    <div class="ph"><div class="ph-left"><div class="ph-title">Manage user accounts</div><div class="ph-sub">From the DIMS Use Case Diagram — Manage User Accounts</div></div>
+    <div class="ph-actions"><button class="btn btn-primary btn-sm" onclick="openCreateAccountModal()">+ Create account</button></div></div>
+    <div class="search-wrap"><span class="search-ico">🔍</span><input placeholder="Search by name, email, or role…"></div>
+    <div class="card">
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Created</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Dr. A. Tjihambuma</strong></td><td>a.tjihambuma@nust.na</td><td><span class="badge b-blue">Lecturer</span></td><td>15 Jan 2025</td><td><span class="badge b-green">Active</span></td><td><div class="btn-group"><button class="btn btn-ghost btn-sm" onclick="toast('✏️ Account edited.')">Edit</button><button class="btn btn-ghost btn-sm" onclick="toast('🔒 Password reset email sent.')">Reset pwd</button></div></td></tr>
+          <tr><td><strong>Mr. H. Nakamhela</strong></td><td>hr@namibiabreweries.com</td><td><span class="badge b-teal">Employer</span></td><td>12 Mar 2022</td><td><span class="badge b-green">Active</span></td><td><div class="btn-group"><button class="btn btn-ghost btn-sm">Edit</button><button class="btn btn-danger btn-sm" onclick="confirmDelete('account')">Deactivate</button></div></td></tr>
+          <tr><td><strong>Prof. J. Amupolo</strong></td><td>j.amupolo@nust.na</td><td><span class="badge b-amber">Management</span></td><td>10 Jan 2025</td><td><span class="badge b-green">Active</span></td><td><div class="btn-group"><button class="btn btn-ghost btn-sm">Edit</button></div></td></tr>
+        </tbody>
+      </table></div>
+    </div>`,
+
+        reports: () => `
+    <div class="ph"><div class="ph-left"><div class="ph-title">Generate reports</div><div class="ph-sub">Placement statistics by faculty, semester, and employer (FR-08)</div></div></div>
+    <div class="g2">
+      <div class="card">
+        <div class="card-head"><div class="card-title">📈 Placement statistics report</div></div>
+        <p style="font-size:13px;color:var(--text2);margin-bottom:14px;line-height:1.7">Placement rates by faculty, semester, and employer. Exportable as PDF or CSV.</p>
+        <div class="f-row">
+          <div class="f-group"><label class="f-label">Semester</label><select class="f-select"><option>Semester 1, 2025</option><option>Semester 2, 2024</option></select></div>
+          <div class="f-group"><label class="f-label">Faculty</label><select class="f-select"><option>All faculties</option><option>Computing & Informatics</option><option>Engineering</option><option>Commerce</option></select></div>
+        </div>
+        <div class="btn-group" style="margin-top:12px">
+          <button class="btn btn-primary" onclick="downloadPDF()">Download PDF</button>
+          <button class="btn btn-outline" onclick="exportCSV()">Export CSV</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-head"><div class="card-title">📓 Student performance report</div></div>
+        <p style="font-size:13px;color:var(--text2);margin-bottom:14px;line-height:1.7">Aggregate evaluation scores, logbook submission rates, and outstanding assessments.</p>
+        <div class="f-row">
+          <div class="f-group"><label class="f-label">Semester</label><select class="f-select"><option>Semester 1, 2025</option></select></div>
+          <div class="f-group"><label class="f-label">Lecturer</label><select class="f-select"><option>All lecturers</option><option>Dr. A. Tjihambuma</option></select></div>
+        </div>
+        <div class="btn-group" style="margin-top:12px">
+          <button class="btn btn-primary" onclick="downloadPDF()">Download PDF</button>
+          <button class="btn btn-outline" onclick="exportCSV()">Export CSV</button>
+        </div>
+      </div>
+    </div>`,
+    },
+
+    /* ─────────────────────────────────────
+       LECTURER
+    ───────────────────────────────────── */
+    lecturer: {
+        dashboard: () => `
+    <div class="hero">
+      <div class="hero-title">Supervisor dashboard 📚</div>
+      <div class="hero-sub">Dr. A. Tjihambuma &nbsp;·&nbsp; Computing & Informatics &nbsp;·&nbsp; 6 students under supervision</div>
+    </div>
+    <div class="stats">
+      <div class="stat c-blue"><div class="stat-label">Students supervised</div><div class="stat-val blue">6</div></div>
+      <div class="stat c-amber"><div class="stat-label">Logbooks to review</div><div class="stat-val amber">4</div><div class="stat-sub">Requires action</div></div>
+      <div class="stat c-green"><div class="stat-label">Evaluations submitted</div><div class="stat-val green">2</div></div>
+      <div class="stat"><div class="stat-label">Avg student score</div><div class="stat-val">76.4</div><div class="stat-trend up">↑ from 74.1</div></div>
+    </div>
+    <div class="g2">
+      <div class="card">
+        <div class="card-head"><div class="card-title">🎓 My students</div><span class="card-action" onclick="showPage('mystudents')">View all →</span></div>
+        <div class="tbl-wrap"><table>
+          <thead><tr><th>Student</th><th>Employer</th><th>Progress</th><th>Score</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Tjihezu Tjihozu</strong></td><td>Namibia Breweries</td><td><div class="prog-bar" style="width:120px;margin:0"><div class="prog-fill" style="width:65%"></div></div></td><td><strong style="color:var(--accent)">78</strong></td></tr>
+            <tr><td><strong>Alisha Tjihambuma</strong></td><td>FNB Namibia</td><td><div class="prog-bar" style="width:120px;margin:0"><div class="prog-fill" style="width:80%"></div></div></td><td><strong style="color:var(--success)">82</strong></td></tr>
+            <tr><td><strong>Dyrall Beukes</strong></td><td>MTC Namibia</td><td><span class="badge b-amber" style="font-size:10px">Pending placement</span></td><td>—</td></tr>
+          </tbody>
+        </table></div>
+      </div>
+      <div class="card">
+        <div class="card-head"><div class="card-title">📓 Pending logbook reviews</div><span class="card-action" onclick="showPage('logbookreview')">Review all →</span></div>
+        <div class="ni"><div class="ni-dot"></div><div><div class="ni-text"><strong>Tjihezu</strong> — Week 13: Network infrastructure mapping</div><div class="ni-time">Submitted yesterday</div></div></div>
+        <div class="ni"><div class="ni-dot"></div><div><div class="ni-text"><strong>Alisha</strong> — Weeks 11 & 12 pending</div><div class="ni-time">Submitted 3 days ago</div></div></div>
+        <div class="ni"><div class="ni-dot"></div><div><div class="ni-text"><strong>Anselmo</strong> — Week 10 entry</div><div class="ni-time">Submitted 4 days ago</div></div></div>
+        <div style="margin-top:12px"><button class="btn btn-primary btn-sm btn-full" onclick="showPage('logbookreview')">Review logbooks <span class="badge b-red" style="margin-left:4px">4</span></button></div>
+      </div>
+    </div>`,
+
+        profile: async () => {
+    let res = await fetch('api/profile.php?user_id=' + currentUser.id);
+    let p = (await res.json()).data || {};
+    let names = (p.name || '').split(' ');
+    let fname = names[0] || '';
+    let lname = names.slice(1).join(' ') || '';
+    let initials = fname.charAt(0) + (lname.charAt(0) || '');
+    return `
+    <div class="ph"><div class="ph-left"><div class="ph-title">My profile</div></div></div>
+    <div class="card">
+      <div style="display:flex;align-items:center;gap:16px;margin-bottom:20px">
+        <div class="profile-avatar">${initials.toUpperCase()}</div>
+        <div><div style="font-size:17px;font-weight:700;color:var(--navy)">${p.name || ''}</div><div style="font-size:13px;color:var(--muted)">Lecturer &amp; WIL Supervisor &nbsp;·&nbsp; Computing &amp; Informatics</div></div>
+      </div>
+      <div class="f-row">
+        <div class="f-group"><label class="f-label">First name</label><input class="f-input" value="${fname}"></div>
+        <div class="f-group"><label class="f-label">Last name</label><input class="f-input" value="${lname}"></div>
+      </div>
+      <div class="f-group" style="margin-top:10px"><label class="f-label">Email</label><input class="f-input" value="${p.email || ''}"></div>
+      <div class="btn-group" style="margin-top:14px"><button class="btn btn-primary" onclick="updateProfileGlobal()">Save changes</button></div>
+    </div>`;
+        },
+
+        settings: () => settingsPage(),
+        notifications: async () => await notificationsPage(),
+
+        mystudents: () => `
+    <div class="ph"><div class="ph-left"><div class="ph-title">Student list</div><div class="ph-sub">Students under your WIL supervision</div></div></div>
+    <div class="card">
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Student</th><th>Programme</th><th>Employer</th><th>Logbook</th><th>Score</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Tjihezu Tjihozu</strong></td><td>BSc CS</td><td>Namibia Breweries</td><td><span class="badge b-amber">2 pending</span></td><td><strong style="color:var(--accent)">78</strong></td><td><span class="badge b-green">Active</span></td><td><div class="btn-group"><button class="btn btn-outline btn-sm" onclick="showPage('logbookreview')">Logbook</button><button class="btn btn-ghost btn-sm" onclick="showPage('evaluate')">Evaluate</button></div></td></tr>
+          <tr><td><strong>Alisha Tjihambuma</strong></td><td>BCom Finance</td><td>FNB Namibia</td><td><span class="badge b-amber">2 pending</span></td><td><strong style="color:var(--success)">82</strong></td><td><span class="badge b-green">Active</span></td><td><div class="btn-group"><button class="btn btn-outline btn-sm" onclick="showPage('logbookreview')">Logbook</button><button class="btn btn-ghost btn-sm" onclick="showPage('evaluate')">Evaluate</button></div></td></tr>
+          <tr><td><strong>Dyrall Beukes</strong></td><td>BEng Electrical</td><td>MTC Namibia</td><td>—</td><td>—</td><td><span class="badge b-amber">Pending</span></td><td><button class="btn btn-ghost btn-sm" onclick="toast('📌 Awaiting CEU placement approval.')">Details</button></td></tr>
+        </tbody>
+      </table></div>
+    </div>`,
+
+        logbookreview: () => `
+    <div class="ph"><div class="ph-left"><div class="ph-title">Logbook review</div><div class="ph-sub">4 entries awaiting your review — FR-06</div></div></div>
+    ${[
+                { student: 'Tjihezu Tjihozu', week: 'Week 13', dates: '21–25 Apr 2025', title: 'Network infrastructure mapping', body: 'Assisted in mapping the company\'s internal network using Nmap and Visio. Created updated topology diagrams for three server rooms and documented IP address ranges.', hrs: 38 },
+                { student: 'Alisha Tjihambuma', week: 'Week 12', dates: '14–18 Apr 2025', title: 'Credit risk assessment training', body: 'Completed internal credit risk assessment module and shadowed senior analyst during client meetings. Assisted with data input for the monthly risk report.', hrs: 40 },
+            ].map(e => `
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:12px">
+        <div>
+          <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em">${e.student} &nbsp;·&nbsp; ${e.week} &nbsp;·&nbsp; ${e.dates}</div>
+          <div style="font-size:15px;font-weight:700;color:var(--navy);margin-top:4px">${e.title}</div>
+        </div>
+        <span class="log-hrs">⏱ ${e.hrs} hrs</span>
+      </div>
+      <p style="font-size:13px;color:var(--text2);line-height:1.65">${e.body}</p>
