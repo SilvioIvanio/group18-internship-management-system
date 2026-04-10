@@ -398,3 +398,403 @@ function settingsPage() {
       </div>
       <div class="card">
         <div class="settings-section-title" style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:12px">Danger zone</div>
+        <button class="btn btn-danger btn-sm" onclick="openModal({title:'Delete account?',sub:'This action is permanent and cannot be undone. All your data will be removed.',size:'sm',body:\`<div class='confirm-dialog'><div class='confirm-icon'>⚠️</div></div>\`,actions:\`<button class='btn btn-outline' onclick='closeModal()'>Cancel</button><button class='btn btn-danger' onclick='closeModal();toast(\"Account deletion requested. CEU will contact you.\")'>Delete account</button>\`})">Delete my account</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+async function notificationsPage() {
+    let res = await fetch('api/notifications.php?user_id=' + currentUser.id);
+    let json = await res.json();
+    const items = json.data || [];
+    return `
+  <div class="ph"><div class="ph-left"><div class="ph-title">Notifications</div><div class="ph-sub">${items.length} unread</div></div>
+  <div class="ph-actions"><button class="btn btn-outline btn-sm" onclick="toast('Marked all as read ✅')">Mark all read</button></div></div>
+  <div class="card">
+    ${items.length ? items.map(n => `
+      <div class="ni">
+        <div class="ni-dot"></div>
+        <div style="flex:1">
+          <div class="ni-text">${n.message}</div>
+          <div class="ni-time">${n.created_at}</div>
+        </div>
+      </div>`).join('')
+            : `<div class="empty"><div class="empty-icon">🎉</div><div class="empty-title">All caught up!</div><div class="empty-text">No notifications at this time.</div></div>`}
+  </div>`;
+}
+
+/* ══════════════════════════════════════
+   PAGE TEMPLATES
+══════════════════════════════════════ */
+const PAGES = {
+
+    /* ─────────────────────────────────────
+       STUDENT
+    ───────────────────────────────────── */
+    student: {
+        dashboard: () => `
+    <div class="hero">
+      <div class="hero-title">Good morning, Tjihezu 👋</div>
+      <div class="hero-sub">NUST · BSc Computer Science · Student No. 223127418 · Semester 1, 2025</div>
+      <div class="hero-actions">
+        <button class="btn btn-accent btn-sm" onclick="showPage('logbook')">📓 Add logbook entry</button>
+        <button class="btn btn-outline btn-sm" style="color:#fff;border-color:rgba(255,255,255,.25)" onclick="showPage('vacancies')">🔍 Browse vacancies</button>
+      </div>
+    </div>
+    <div class="stats">
+      <div class="stat c-blue"><div class="stat-label">Applications</div><div class="stat-val blue">3</div><div class="stat-sub">1 shortlisted</div></div>
+      <div class="stat c-green"><div class="stat-label">Placement status</div><div class="stat-val" style="font-size:16px;margin-top:6px;color:var(--success)">Active ✓</div><div class="stat-sub">Namibia Breweries Ltd</div></div>
+      <div class="stat c-amber"><div class="stat-label">Logbook entries</div><div class="stat-val">14</div><div class="stat-sub">2 pending approval</div></div>
+      <div class="stat c-red"><div class="stat-label">Days remaining</div><div class="stat-val amber">48</div><div class="stat-sub">Ends 30 Jun 2025</div></div>
+    </div>
+    <div class="g2">
+      <div class="card">
+        <div class="card-head"><div class="card-title">📌 Current placement</div><span class="badge b-green"><span class="b-dot"></span>Active</span></div>
+        <dl class="dl">
+          <dt>Organisation</dt><dd>Namibia Breweries Ltd</dd>
+          <dt>Department</dt><dd>IT / Systems</dd>
+          <dt>Supervisor</dt><dd>Mr. H. Nakamhela</dd>
+          <dt>Lecturer</dt><dd>Dr. A. Tjihambuma</dd>
+          <dt>Period</dt><dd>01 Feb – 30 Jun 2025</dd>
+        </dl>
+        <div style="margin-top:16px"><div style="display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:5px"><span>Progress</span><span>65%</span></div>
+        <div class="prog-bar"><div class="prog-fill" style="width:65%"></div></div>
+        <div style="font-size:11px;color:var(--muted);margin-top:4px">48 days remaining</div></div>
+        <div class="btn-group" style="margin-top:14px">
+          <button class="btn btn-primary btn-sm" onclick="openLogModal()">📓 New entry</button>
+          <button class="btn btn-outline btn-sm" onclick="showPage('placement')">View details →</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-head"><div class="card-title">📅 Internship milestones</div></div>
+        <ul class="timeline">
+          <li class="tl-item done"><div class="tl-title">Registered on DIMS</div><div class="tl-sub">20 Jan 2025</div></li>
+          <li class="tl-item done"><div class="tl-title">Application submitted</div><div class="tl-sub">02 Feb 2025 — Namibia Breweries Ltd</div></li>
+          <li class="tl-item done"><div class="tl-title">CEU placement approved</div><div class="tl-sub">01 Feb 2025</div></li>
+          <li class="tl-item done"><div class="tl-title">Mid-term evaluation</div><div class="tl-sub">Score: 78/100 · 15 Mar 2025</div></li>
+          <li class="tl-item now"><div class="tl-title">Active internship period</div><div class="tl-sub">Ongoing — submit weekly logbook</div></li>
+          <li class="tl-item"><div class="tl-title">Final evaluation</div><div class="tl-sub">Scheduled: 30 Jun 2025</div></li>
+        </ul>
+      </div>
+    </div>`,
+
+        profile: async () => {
+    let res = await fetch('api/profile.php?user_id=' + currentUser.id);
+    let p = (await res.json()).data || {};
+    let names = (p.name || '').split(' ');
+    let fname = names[0] || '';
+    let lname = names.slice(1).join(' ') || '';
+    return `
+    <div class="ph"><div class="ph-left"><div class="ph-title">My Profile</div><div class="ph-sub">Manage your personal and academic information</div></div></div>
+    <div class="profile-completion">
+      <div style="flex:1">
+        <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px">Profile completion</div>
+        <div class="prog-bar"><div class="prog-fill" style="width:${p.completion || 0}%"></div></div>
+      </div>
+      <div class="profile-completion-pct">${p.completion || 0}%</div>
+      <button class="btn btn-outline btn-sm" onclick="toast('💡 Add a profile photo to reach 100%.')">Complete profile</button>
+    </div>
+    <div class="g2-asym">
+      <div>
+        <div class="card">
+          <div class="card-head"><div class="card-title">👤 Personal information</div><button class="btn btn-outline btn-sm" onclick="updateProfileGlobal()">Save changes</button></div>
+          <div class="f-row">
+            <div class="f-group"><label class="f-label">First name</label><input class="f-input" value="${fname}"></div>
+            <div class="f-group"><label class="f-label">Last name</label><input class="f-input" value="${lname}"></div>
+          </div>
+          <div class="f-group" style="margin-top:10px"><label class="f-label">Email address</label><input class="f-input" type="email" value="${p.email || ''}"></div>
+          <div class="f-group" style="margin-top:10px"><label class="f-label">Phone number</label><input class="f-input" type="tel" value="${p.phone || ''}" placeholder="+264 XX XXX XXXX"></div>
+          <div class="f-group" style="margin-top:10px"><label class="f-label">Address</label><input class="f-input" value="${p.address || ''}" placeholder="Windhoek, Namibia"></div>
+        </div>
+        <div class="card">
+          <div class="card-head"><div class="card-title">🎓 Academic details</div></div>
+          <dl class="dl">
+            <dt>Student number</dt><dd>${p.student_no || 'Pending...'}</dd>
+            <dt>Programme</dt><dd>${p.programme || 'Pending...'}</dd>
+            <dt>Year of study</dt><dd>${p.year_of_study || 'Pending...'}</dd>
+            <dt>Faculty</dt><dd>Computing & Informatics</dd>
+            <dt>Academic status</dt><dd><span class="badge b-green">In good standing</span></dd>
+          </dl>
+        </div>
+      </div>
+      <div>
+        <div class="card">
+          <div class="card-head"><div class="card-title">📄 CV & documents</div></div>
+          <div style="border:2px dashed var(--border);border-radius:var(--r-sm);padding:24px;text-align:center;margin-bottom:12px;cursor:pointer" onclick="triggerDocUpload('cv')">
+            <div style="font-size:24px;margin-bottom:8px">📤</div>
+            <div style="font-size:13px;font-weight:600;color:var(--text2)">Upload your CV</div>
+            <div style="font-size:11px;color:var(--muted);margin-top:4px">PDF, max 5MB</div>
+          </div>
+          ${p.cv_path ? `
+          <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--surface);border-radius:var(--r-sm);border:1px solid var(--border)">
+            <span>📄</span>
+            <div style="flex:1"><div style="font-size:12px;font-weight:600;color:var(--text)">${p.cv_path.split('/').pop()}</div><div style="font-size:11px;color:var(--muted)">Official active CV</div></div>
+          </div>
+          ` : ''}
+        </div>
+        <div class="card">
+          <div class="card-head"><div class="card-title">📊 Quick stats</div></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+            <div style="background:var(--surface);border-radius:var(--r-sm);padding:14px;text-align:center">
+              <div style="font-family:'Outfit',sans-serif;font-size:22px;font-weight:800;color:var(--accent)">${p.count_apps || 0}</div>
+              <div style="font-size:11px;color:var(--muted)">Applications sent</div>
+            </div>
+            <div style="background:var(--surface);border-radius:var(--r-sm);padding:14px;text-align:center">
+              <div style="font-family:'Outfit',sans-serif;font-size:22px;font-weight:800;color:var(--success)">${p.count_logs || 0}</div>
+              <div style="font-size:11px;color:var(--muted)">Logbook entries</div>
+            </div>
+            <div style="background:var(--surface);border-radius:var(--r-sm);padding:14px;text-align:center">
+              <div style="font-family:'Outfit',sans-serif;font-size:22px;font-weight:800;color:var(--warn)">${p.avg_score || '--'}</div>
+              <div style="font-size:11px;color:var(--muted)">Avg. eval score</div>
+            </div>
+            <div style="background:var(--surface);border-radius:var(--r-sm);padding:14px;text-align:center">
+              <div style="font-family:'Outfit',sans-serif;font-size:22px;font-weight:800;color:var(--navy)">${p.wil_progress || 0}%</div>
+              <div style="font-size:11px;color:var(--muted)">WIL time progress</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>`;
+        },
+
+        settings: () => settingsPage(),
+        notifications: async () => await notificationsPage(),
+
+        vacancies: async () => {
+    let res = await fetch('api/vacancies.php');
+    let data = await res.json();
+    let vacs = data.data || [];
+    return `
+    <div class="ph"><div class="ph-left"><div class="ph-title">Browse vacancies</div><div class="ph-sub">Internship opportunities from verified CEU industry partners</div></div></div>
+    <div class="search-wrap"><span class="search-ico">🔍</span><input placeholder="Search by title, company, or field…"></div>
+    <div class="chips">
+      <div class="chip on">All</div>
+      <div class="chip">IT & Software</div>
+      <div class="chip">Engineering</div>
+    </div>
+    ${vacs.map(v => `
+    <div class="vac" onclick="openApplyModal(${v.id}, '${v.employer_name}', '${v.title}')">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px">
+        <div class="vac-title">${v.title}</div>
+        <span class="badge ${v.status === 'Open' ? 'b-green' : 'b-gray'}" style="flex-shrink:0">${v.status}</span>
+      </div>
+      <div class="vac-meta">🏢 ${v.employer_name} &nbsp;·&nbsp; 📍 ${v.location} &nbsp;·&nbsp; ⏱ ${v.duration_months} months &nbsp;·&nbsp; 📅 Deadline: ${v.deadline} &nbsp;·&nbsp; ${v.slots} slots</div>
+      <div class="vac-desc">${v.description}</div>
+      <div class="vac-footer">
+        <button class="btn btn-primary btn-sm" onclick="event.stopPropagation();openApplyModal(${v.id}, '${v.employer_name}', '${v.title}')">Apply now</button>
+      </div>
+    </div>`).join('')}`;
+        },
+
+        applications: async () => {
+    let res = await fetch('api/applications.php?student_id=' + currentUser.id);
+    let data = await res.json();
+    let apps = data.data || [];
+    return `
+    <div class="ph"><div class="ph-left"><div class="ph-title">My applications</div><div class="ph-sub">Track each application through the placement lifecycle (FR-04)</div></div></div>
+    ${apps.map(a => {
+        let step = a.status === 'Pending' ? 1 : a.status === 'Shortlisted' ? 3 : a.status === 'Accepted' ? 4 : -1;
+        let bc = a.status === 'Pending' ? 'b-gray' : a.status === 'Shortlisted' ? 'b-blue' : a.status === 'Accepted' ? 'b-green' : 'b-red';
+        return `
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:14px">
+        <div><div style="font-size:15px;font-weight:700;color:var(--navy)">${a.title}</div><div style="font-size:12px;color:var(--muted);margin-top:2px">${a.employer_name} &nbsp;·&nbsp; Applied ${a.applied_at || 'recently'}</div></div>
+        <span class="badge ${bc}" style="flex-shrink:0"><span class="b-dot"></span>${a.status}</span>
+      </div>
+      ${step > 0 ? `
+      <div style="position:relative;margin:16px 0 4px">
+        <div style="display:flex;gap:0">
+          ${['Submitted', 'Under review', 'Shortlisted', 'Accepted', 'Placed'].map((s, i) => `
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;position:relative;z-index:1">
+            <div style="width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;border:2px solid var(--white);
+              background:${i < step ? 'var(--success)' : i === step - 1 ? 'var(--accent)' : 'var(--border2)'};">
+              ${i < step ? '✓' : i === step - 1 ? '●' : ''}
+            </div>
+            <div style="font-size:10px;font-weight:600;color:${i <= step - 1 ? 'var(--text2)' : 'var(--muted)'};text-align:center;line-height:1.3">${s}</div>
+          </div>`).join('')}
+        </div>
+        <div style="position:absolute;top:13px;left:0;right:0;height:2px;background:var(--border);z-index:0"></div>
+        <div style="position:absolute;top:13px;left:0;height:2px;background:var(--accent);z-index:0;width:${(step - 1) / 4 * 100}%"></div>
+      </div>`: '<div style="background:var(--danger-dim);border-radius:var(--r-sm);padding:10px 14px;font-size:13px;color:var(--danger);margin:10px 0">This application was unsuccessful. We encourage you to apply to other vacancies.</div>'}
+      <div class="btn-group" style="margin-top:14px">
+        ${step >= 4 ? `<button class="btn btn-primary btn-sm" onclick="showPage('placement')">View placement →</button>` : ''}
+        ${step === 3 ? `<button class="btn btn-accent btn-sm" onclick="toast('🎉 Reviewing offer...')">Review offer</button>` : ''}
+        <button class="btn btn-ghost btn-sm" onclick="toast('📄 Application details opened.')">Details</button>
+        ${step < 0 ? `<button class="btn btn-outline btn-sm" onclick="showPage('vacancies')">Browse more vacancies</button>` : ''}
+      </div>
+    </div>`}).join('')}`;
+        },
+
+        placement: () => `
+    <div class="ph">
+      <div class="ph-left"><div class="ph-title">My placement</div><div class="ph-sub">Namibia Breweries Ltd — IT Support Intern</div></div>
+      <div class="ph-actions"><button class="btn btn-primary" onclick="openLogModal()">📓 New logbook entry</button></div>
+    </div>
+    <div class="g2">
+      <div class="card">
+        <div class="card-head"><div class="card-title">📌 Placement details</div><span class="badge b-green"><span class="b-dot"></span>Active</span></div>
+        <dl class="dl">
+          <dt>Organisation</dt><dd>Namibia Breweries Ltd</dd>
+          <dt>Department</dt><dd>IT / Systems</dd>
+          <dt>Role</dt><dd>IT Support Intern</dd>
+          <dt>Supervisor</dt><dd>Mr. H. Nakamhela</dd>
+          <dt>Lecturer</dt><dd>Dr. A. Tjihambuma</dd>
+          <dt>Start date</dt><dd>01 February 2025</dd>
+          <dt>End date</dt><dd>30 June 2025</dd>
+          <dt>Duration</dt><dd>5 months</dd>
+        </dl>
+        <div style="margin-top:16px">
+          <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:5px"><span>WIL progress</span><span>65% · 48 days left</span></div>
+          <div class="prog-bar"><div class="prog-fill" style="width:65%"></div></div>
+        </div>
+        <div class="btn-group" style="margin-top:14px">
+          <button class="btn btn-outline btn-sm" onclick="toast('📄 Placement confirmation letter downloading…')">Download letter</button>
+          <button class="btn btn-ghost btn-sm" onclick="toast('📧 Support request sent to CEU.')">Contact CEU</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-head"><div class="card-title">📅 Activity timeline</div></div>
+        <ul class="timeline">
+          <li class="tl-item done"><div class="tl-title">Placement confirmed by CEU</div><div class="tl-sub">01 Feb 2025</div></li>
+          <li class="tl-item done"><div class="tl-title">First logbook entry submitted</div><div class="tl-sub">03 Feb 2025</div></li>
+          <li class="tl-item done"><div class="tl-title">Mid-term evaluation received</div><div class="tl-sub">Score: 78/100 · 15 Mar 2025</div></li>
+          <li class="tl-item done"><div class="tl-title">Logbook reviewed by lecturer</div><div class="tl-sub">Dr. Tjihambuma · 20 Apr 2025</div></li>
+          <li class="tl-item now"><div class="tl-title">Active internship period</div><div class="tl-sub">Ongoing — submit weekly logs</div></li>
+          <li class="tl-item"><div class="tl-title">Final evaluation</div><div class="tl-sub">Scheduled: 30 Jun 2025</div></li>
+          <li class="tl-item"><div class="tl-title">WIL completion</div><div class="tl-sub">Expected: 30 Jun 2025</div></li>
+        </ul>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-head"><div class="card-title">⭐ Evaluation received</div></div>
+      <div style="display:flex;gap:28px;align-items:flex-start">
+        <div class="score"><div class="score-n">78</div><div class="score-l">Mid-term score</div></div>
+        <div style="flex:1;padding-top:4px">
+          <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px">Employer feedback · Mr. H. Nakamhela · 15 Mar 2025</div>
+          <blockquote>"Tjihezu has shown strong problem-solving skills and adapts quickly to new tasks. Communication with the team is excellent. Would recommend for full-time consideration."</blockquote>
+          <div class="btn-group" style="margin-top:12px">
+            <span class="badge b-green">Technical: 82/100</span>
+            <span class="badge b-blue">Work ethic: 88/100</span>
+            <span class="badge b-teal">Communication: 76/100</span>
+          </div>
+        </div>
+      </div>
+    </div>`,
+
+        logbook: () => `
+    <div class="ph">
+      <div class="ph-left"><div class="ph-title">Logbook</div><div class="ph-sub">Weekly internship journal — 14 entries · 2 pending lecturer approval (FR-05)</div></div>
+      <div class="ph-actions"><button class="btn btn-primary" onclick="openLogModal()">+ New entry</button></div>
+    </div>
+    <div class="card">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+        <div style="flex:1"><div style="display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:5px"><span>Submission progress</span><span>14 of 20 weeks</span></div>
+        <div class="prog-bar"><div class="prog-fill" style="width:70%"></div></div></div>
+      </div>
+      ${[
+                { week: 'Week 14', dates: '28 Apr – 02 May 2025', title: 'Database administration & backup scripting', body: 'Set up automated backup scripts for SQL Server using PowerShell scheduled tasks. Documented the procedure for the IT team\'s runbook. Tested restore procedures in the staging environment.', hrs: 40, status: 'Approved by Dr. Tjihambuma', bc: 'b-green' },
+                { week: 'Week 13', dates: '21–25 Apr 2025', title: 'Network infrastructure mapping', body: 'Assisted in mapping the company\'s internal network using Nmap and Visio. Created updated topology diagrams for three server rooms and documented IP address ranges.', hrs: 38, status: 'Pending review', bc: 'b-amber' },
+                { week: 'Week 12', dates: '14–18 Apr 2025', title: 'Help desk support & ticket management', body: 'Managed 24 support tickets. Resolved hardware and software issues for end users. Escalated 3 critical incidents to senior IT staff. Documented all resolutions in the ticketing system.', hrs: 40, status: 'Approved by Dr. Tjihambuma', bc: 'b-green' },
+            ].map(e => `
+      <div class="log-item">
+        <div class="log-week">${e.week} &nbsp;·&nbsp; ${e.dates}</div>
+        <div class="log-title2">${e.title}</div>
+        <div class="log-body">${e.body}</div>
+        <div class="log-footer">
+          <span class="log-hrs">⏱ ${e.hrs} hrs</span>
+          <span class="badge ${e.bc}">${e.status}</span>
+          <button class="btn btn-ghost btn-sm" style="margin-left:auto" onclick="toast('✏️ Editing entry…')">Edit</button>
+        </div>
+      </div>`).join('')}
+    </div>`,
+
+        documents: () => `
+    <div class="ph">
+      <div class="ph-left"><div class="ph-title">Documents</div><div class="ph-sub">Upload and manage your internship documents (FR-01)</div></div>
+      <div class="ph-actions"><button class="btn btn-primary" onclick="openUploadModal()">+ Upload document</button></div>
+    </div>
+    <div class="card">
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>File name</th><th>Type</th><th>Size</th><th>Uploaded</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody>
+            <tr><td>📄 <strong>Tjihozu_CV_2025.pdf</strong></td><td>Curriculum Vitae</td><td>284 KB</td><td>20 Jan 2025</td><td><span class="badge b-green">Verified</span></td><td><div class="btn-group"><button class="btn btn-outline btn-sm" onclick="toast('👁 CV opened')">View</button><button class="btn btn-ghost btn-sm" onclick="toast('📥 Downloading…')">↓</button></div></td></tr>
+            <tr><td>📄 <strong>Academic_Transcript_S1.pdf</strong></td><td>Transcript</td><td>512 KB</td><td>20 Jan 2025</td><td><span class="badge b-green">Verified</span></td><td><div class="btn-group"><button class="btn btn-outline btn-sm" onclick="toast('👁 Transcript opened')">View</button><button class="btn btn-ghost btn-sm" onclick="toast('📥 Downloading…')">↓</button></div></td></tr>
+            <tr><td>📄 <strong>Placement_Confirmation_NBL.pdf</strong></td><td>Confirmation letter</td><td>156 KB</td><td>01 Feb 2025</td><td><span class="badge b-green">Verified</span></td><td><div class="btn-group"><button class="btn btn-outline btn-sm" onclick="toast('👁 Letter opened')">View</button><button class="btn btn-ghost btn-sm" onclick="toast('📥 Downloading…')">↓</button></div></td></tr>
+            <tr><td>📄 <strong>Reference_Nakamhela.pdf</strong></td><td>Reference letter</td><td>98 KB</td><td>10 Mar 2025</td><td><span class="badge b-amber">Pending CEU review</span></td><td><div class="btn-group"><button class="btn btn-outline btn-sm" onclick="toast('👁 Letter opened')">View</button><button class="btn btn-danger btn-sm" onclick="toast('🗑 Document removed.')">Remove</button></div></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>`,
+    },
+
+    /* ─────────────────────────────────────
+       EMPLOYER
+    ───────────────────────────────────── */
+    employer: {
+        dashboard: () => `
+    <div class="hero">
+      <div class="hero-title">Employer dashboard 🏢</div>
+      <div class="hero-sub">Namibia Breweries Ltd &nbsp;·&nbsp; MoU verified &nbsp;·&nbsp; Semester 1, 2025</div>
+      <div class="hero-actions">
+        <button class="btn btn-accent btn-sm" onclick="showPage('postvac')">+ Post vacancy</button>
+        <button class="btn btn-outline btn-sm" style="color:#fff;border-color:rgba(255,255,255,.25)" onclick="showPage('applicants')">Review applicants</button>
+      </div>
+    </div>
+    <div class="stats">
+      <div class="stat c-blue"><div class="stat-label">Active vacancies</div><div class="stat-val blue">2</div></div>
+      <div class="stat"><div class="stat-label">Total applicants</div><div class="stat-val">11</div><div class="stat-sub">2 pending review</div></div>
+      <div class="stat c-green"><div class="stat-label">Active interns</div><div class="stat-val green">1</div></div>
+      <div class="stat c-amber"><div class="stat-label">Evaluations due</div><div class="stat-val amber">1</div></div>
+    </div>
+    <div class="g2">
+      <div class="card">
+        <div class="card-head"><div class="card-title">📋 My vacancies</div><span class="card-action" onclick="showPage('vaclist')">View all →</span></div>
+        <div class="tbl-wrap"><table>
+          <thead><tr><th>Position</th><th>Applicants</th><th>Deadline</th><th>Status</th></tr></thead>
+          <tbody>
+            <tr><td><strong>IT Support Intern</strong></td><td>8</td><td>28 Feb 2025</td><td><span class="badge b-gray">Closed</span></td></tr>
+            <tr><td><strong>Systems Admin Intern</strong></td><td>3</td><td>30 May 2025</td><td><span class="badge b-green">Open</span></td></tr>
+          </tbody>
+        </table></div>
+      </div>
+      <div class="card">
+        <div class="card-head"><div class="card-title">🕒 Recent activity</div></div>
+        <div class="ni"><div class="ni-dot"></div><div><div class="ni-text">New application from <strong>Dyrall Beukes</strong> — Systems Admin Intern</div><div class="ni-time">1 hour ago</div></div></div>
+        <div class="ni"><div class="ni-dot"></div><div><div class="ni-text">CEU approved vacancy: <strong>Systems Admin Intern</strong></div><div class="ni-time">2 days ago</div></div></div>
+        <div class="ni"><div class="ni-dot read"></div><div><div class="ni-text"><strong>Tjihezu</strong> submitted 3 new logbook entries</div><div class="ni-time">3 days ago</div></div></div>
+      </div>
+    </div>`,
+
+        profile: async () => {
+    let res = await fetch('api/profile.php?user_id=' + currentUser.id);
+    let p = (await res.json()).data || {};
+    return `
+    <div class="ph"><div class="ph-left"><div class="ph-title">Company profile</div><div class="ph-sub">Manage your employer profile and partnership details</div></div></div>
+    <div class="g2">
+      <div class="card">
+        <div class="card-head"><div class="card-title">🏢 Company information</div><button class="btn btn-outline btn-sm" onclick="updateProfileGlobal()">Save changes</button></div>
+        <div class="f-group"><label class="f-label">Company name</label><input class="f-input" value="${p.name || ''}" readonly></div>
+        <div class="f-group" style="margin-top:10px"><label class="f-label">Industry / sector</label><select class="f-select" disabled><option>FMCG</option><option>IT & Technology</option><option>Finance</option><option>Telecoms</option></select></div>
+        <div class="f-group" style="margin-top:10px"><label class="f-label">Physical address</label><input class="f-input" value="${p.address || ''}"></div>
+        <div class="f-group" style="margin-top:10px"><label class="f-label">Contact person</label><input class="f-input" value="${p.name || ''}"></div>
+        <div class="f-group" style="margin-top:10px"><label class="f-label">HR email</label><input class="f-input" type="email" value="${p.email || ''}"></div>
+      </div>
+      <div class="card">
+        <div class="card-head"><div class="card-title">📋 Partnership status</div></div>
+        <dl class="dl">
+          <dt>MoU status</dt><dd><span class="badge b-green">Verified & active</span></dd>
+          <dt>MoU signed</dt><dd>12 March 2022</dd>
+          <dt>MoU expiry</dt><dd>11 March 2027</dd>
+          <dt>Total interns hosted</dt><dd>${p.count_apps || 0} (since account created)</dd>
+          <dt>Active interns</dt><dd>0</dd>
+          <dt>Evaluation avg</dt><dd>--/100</dd>
+        </dl>
+        <div style="margin-top:16px;padding:12px 14px;background:var(--success-dim);border-radius:var(--r-sm);font-size:12px;color:var(--success);font-weight:600">✓ Your company is a verified NUST CEU partner</div>
+      </div>
+    </div>`;
+        },
+
+        settings: () => settingsPage(),
+
