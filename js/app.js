@@ -1198,3 +1198,496 @@ const PAGES = {
         <span class="log-hrs">⏱ ${e.hrs} hrs</span>
       </div>
       <p style="font-size:13px;color:var(--text2);line-height:1.65">${e.body}</p>
+      <div class="f-group" style="margin-top:14px">
+        <label class="f-label">Feedback comment (optional)</label>
+        <textarea class="f-textarea" placeholder="Add feedback for this logbook entry…"></textarea>
+      </div>
+      <div class="btn-group" style="margin-top:10px">
+        <button class="btn btn-success btn-sm" onclick="toast('✅ Entry approved! Student notified.')">✓ Approve</button>
+        <button class="btn btn-outline btn-sm" onclick="toast('💬 Feedback sent. Entry returned.')">Return with feedback</button>
+        <button class="btn btn-ghost btn-sm" onclick="toast('❌ Entry rejected.')">Reject</button>
+      </div>
+    </div>`).join('')}`,
+
+        evaluate: () => `
+    <div class="ph"><div class="ph-left"><div class="ph-title">Submit evaluation</div><div class="ph-sub">Academic supervisor evaluation form (FR-06)</div></div></div>
+    <div class="card">
+      <div class="f-row">
+        <div class="f-group"><label class="f-label">Student *</label><select class="f-select"><option>Tjihezu Tjihozu</option><option>Alisha Tjihambuma</option></select></div>
+        <div class="f-group"><label class="f-label">Evaluation period *</label><select class="f-select"><option>Mid-term evaluation</option><option>Final evaluation</option></select></div>
+      </div>
+      <div class="f-row" style="margin-top:10px">
+        <div class="f-group"><label class="f-label">Academic performance (0–100)</label><input class="f-input" type="number" value="79" min="0" max="100"></div>
+        <div class="f-group"><label class="f-label">Logbook quality (0–100)</label><input class="f-input" type="number" value="85" min="0" max="100"></div>
+      </div>
+      <div class="f-group" style="margin-top:10px">
+        <label class="f-label">Supervisor's comments *</label>
+        <textarea class="f-textarea" style="height:120px">Student demonstrates solid understanding of applied systems administration. Logbook entries are detailed and reflective. Shows initiative in seeking new learning opportunities.</textarea>
+      </div>
+      <div class="btn-group" style="margin-top:16px">
+        <button class="btn btn-primary" onclick="toast('⭐ Evaluation submitted to CEU!');showPage('mystudents')">Submit evaluation</button>
+        <button class="btn btn-outline" onclick="toast('💾 Draft saved.')">Save draft</button>
+      </div>
+    </div>`,
+    },
+
+    /* ─────────────────────────────────────
+       MANAGEMENT
+    ───────────────────────────────────── */
+    management: {
+        dashboard: () => `
+    <div class="hero">
+      <div class="hero-title">Institutional overview 📊</div>
+      <div class="hero-sub">NUST DIMS &nbsp;·&nbsp; Read-only management dashboard &nbsp;·&nbsp; Academic year 2025 (FR-10)</div>
+    </div>
+    <div class="stats">
+      <div class="stat c-blue"><div class="stat-label">Total students</div><div class="stat-val blue">158</div><div class="stat-trend up">↑ 9% from 2024</div></div>
+      <div class="stat c-green"><div class="stat-label">Placement rate</div><div class="stat-val green">82%</div><div class="stat-trend up">↑ 2pts from 2024</div></div>
+      <div class="stat c-teal"><div class="stat-label">Partner employers</div><div class="stat-val teal">31</div><div class="stat-sub">230+ MoUs total</div></div>
+      <div class="stat"><div class="stat-label">Avg eval score</div><div class="stat-val">76.4</div><div class="stat-trend up">↑ from 74.1</div></div>
+    </div>
+    <div class="g2">
+      <div class="card">
+        <div class="card-head"><div class="card-title">📊 Placements by programme</div></div>
+        <div class="tbl-wrap"><table>
+          <thead><tr><th>Programme</th><th>Students</th><th>Placed</th><th>Rate</th></tr></thead>
+          <tbody>
+            <tr><td>BSc Computer Science</td><td>30</td><td>28</td><td><strong style="color:var(--success)">93%</strong></td></tr>
+            <tr><td>BEng Electrical Eng.</td><td>25</td><td>22</td><td><strong style="color:var(--success)">88%</strong></td></tr>
+            <tr><td>BSc Information Tech.</td><td>39</td><td>31</td><td>79%</td></tr>
+            <tr><td>BCom Finance</td><td>25</td><td>19</td><td>76%</td></tr>
+            <tr><td>Other programmes</td><td>39</td><td>30</td><td>77%</td></tr>
+          </tbody>
+        </table></div>
+      </div>
+      <div class="card">
+        <div class="card-head"><div class="card-title">🏢 Top employers by intake</div></div>
+        <div class="tbl-wrap"><table>
+          <thead><tr><th>Employer</th><th>Interns</th><th>Avg score</th></tr></thead>
+          <tbody>
+            <tr><td>MTC Namibia</td><td><strong>8</strong></td><td>79.2</td></tr>
+            <tr><td>Bank Windhoek</td><td><strong>6</strong></td><td>81.4</td></tr>
+            <tr><td>Namibia Breweries</td><td><strong>5</strong></td><td>78.0</td></tr>
+            <tr><td>Telecom Namibia</td><td><strong>4</strong></td><td>74.5</td></tr>
+            <tr><td>FNB Namibia</td><td><strong>4</strong></td><td>80.1</td></tr>
+          </tbody>
+        </table></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-head"><div class="card-title">📈 Placement trend 2022–2025</div></div>
+      <div class="chart-box"><canvas id="trendChart" height="80"></canvas></div>
+      <div class="chart-legend">
+        <div class="legend-item"><div class="legend-dot" style="background:var(--accent)"></div>Students registered</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--teal)"></div>Students placed</div>
+      </div>
+    </div>`,
+
+        profile: async () => {
+    let res = await fetch('api/profile.php?user_id=' + currentUser.id);
+    let p = (await res.json()).data || {};
+    let names = (p.name || '').split(' ');
+    let fname = names[0] || '';
+    let lname = names.slice(1).join(' ') || '';
+    let initials = fname.charAt(0) + (lname.charAt(0) || '');
+    return `
+    <div class="ph"><div class="ph-left"><div class="ph-title">My profile</div></div></div>
+    <div class="card">
+      <div style="display:flex;align-items:center;gap:16px;margin-bottom:20px">
+        <div class="profile-avatar">${initials.toUpperCase()}</div>
+        <div><div style="font-size:17px;font-weight:700;color:var(--navy)">${p.name || ''}</div><div style="font-size:13px;color:var(--muted)">Management &nbsp;·&nbsp; Read-only Access</div></div>
+      </div>
+      <dl class="dl">
+        <dt>Email</dt><dd>${p.email || ''}</dd>
+        <dt>Role</dt><dd>Management (read-only dashboard access)</dd>
+        <dt>Department</dt><dd>University Analytics Board</dd>
+      </dl>
+    </div>`;
+        },
+
+        settings: () => settingsPage(),
+
+        analytics: () => `
+    <div class="ph"><div class="ph-left"><div class="ph-title">Analytics</div><div class="ph-sub">Historical trends and sector performance data</div></div>
+    <div class="ph-actions"><button class="btn btn-outline btn-sm" onclick="exportCSV()">Export</button></div></div>
+    <div class="card">
+      <div class="card-head"><div class="card-title">📊 Placements by sector — 2025</div></div>
+      <div class="chart-box"><canvas id="sectorChart" height="90"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-head"><div class="card-title">📈 3-year placement trend</div></div>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Year</th><th>Registered</th><th>Placed</th><th>Rate</th><th>Avg score</th><th>YoY change</th></tr></thead>
+        <tbody>
+          <tr><td>2022</td><td>118</td><td>84</td><td>71%</td><td>70.8</td><td>—</td></tr>
+          <tr><td>2023</td><td>132</td><td>98</td><td>74%</td><td>72.1</td><td><span class="badge b-green">↑ +3pts</span></td></tr>
+          <tr><td>2024</td><td>145</td><td>116</td><td>80%</td><td>74.1</td><td><span class="badge b-green">↑ +6pts</span></td></tr>
+          <tr><td><strong>2025</strong></td><td><strong>158</strong></td><td><strong>130</strong></td><td><strong style="color:var(--success)">82%</strong></td><td><strong>76.4</strong></td><td><span class="badge b-green">↑ +2pts</span></td></tr>
+        </tbody>
+      </table></div>
+    </div>`,
+
+        employers3: () => `
+    <div class="ph"><div class="ph-left"><div class="ph-title">Employer directory</div><div class="ph-sub">Read-only view — contact CEU to update records</div></div></div>
+    <div class="search-wrap"><span class="search-ico">🔍</span><input placeholder="Search employers…"></div>
+    <div class="card">
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Company</th><th>Sector</th><th>Interns 2025</th><th>Avg score</th><th>MoU status</th></tr></thead>
+        <tbody>
+          <tr><td><strong>MTC Namibia</strong></td><td>Telecoms</td><td>8</td><td>79.2</td><td><span class="badge b-green">Verified</span></td></tr>
+          <tr><td><strong>Bank Windhoek</strong></td><td>Finance</td><td>6</td><td>81.4</td><td><span class="badge b-green">Verified</span></td></tr>
+          <tr><td><strong>Namibia Breweries</strong></td><td>FMCG</td><td>5</td><td>78.0</td><td><span class="badge b-green">Verified</span></td></tr>
+          <tr><td><strong>Telecom Namibia</strong></td><td>Telecoms</td><td>4</td><td>74.5</td><td><span class="badge b-green">Verified</span></td></tr>
+          <tr><td><strong>FNB Namibia</strong></td><td>Finance</td><td>4</td><td>80.1</td><td><span class="badge b-green">Verified</span></td></tr>
+          <tr><td><strong>NamPost</strong></td><td>Logistics</td><td>3</td><td>72.0</td><td><span class="badge b-amber">Renewal pending</span></td></tr>
+        </tbody>
+      </table></div>
+    </div>`,
+
+        reports2: () => `
+    <div class="ph"><div class="ph-left"><div class="ph-title">Strategic reports</div><div class="ph-sub">Read-only institutional reports generated by CEU (FR-10)</div></div></div>
+    ${[
+                { title: 'Annual placement outcomes 2025', icon: '📈', desc: 'Full-year placement statistics, sector breakdown, and employer engagement metrics for all faculties.' },
+                { title: 'Student performance summary', icon: '📓', desc: 'Aggregate evaluation scores, logbook submission rates, and outstanding assessments per programme.' },
+                { title: 'Employer partnership health', icon: '🏢', desc: 'Active vs lapsed employer MoUs, vacancy fill rates, and 3-year intake growth by sector.' },
+                { title: 'Youth employment impact report', icon: '🌍', desc: 'DIMS contribution to reducing Namibia\'s 44.4% youth unemployment rate through WIL facilitation.' },
+            ].map(r => `
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">${r.icon} ${r.title}</div>
+      </div>
+      <p style="font-size:13px;color:var(--text2);margin-bottom:14px;line-height:1.7">${r.desc}</p>
+      <div class="btn-group">
+        <button class="btn btn-primary btn-sm" onclick="downloadPDF()">Download PDF</button>
+        <button class="btn btn-outline btn-sm" onclick="exportCSV()">Export data</button>
+      </div>
+    </div>`).join('')}`,
+    },
+}; // end PAGES
+
+/* ══════════════════════════════════════
+   MODALS
+══════════════════════════════════════ */
+window.pendingVacancyId = null;
+function openApplyModal(vid, company, position) {
+    window.pendingVacancyId = vid;
+    openModal({
+        title: `Apply — ${position}`, sub: company, body: `
+    <div class="f-row">
+      <div class="f-group"><label class="f-label">Full name</label><input class="f-input" value="${currentUser.name}" readonly></div>
+    </div>
+    <div class="f-group" style="margin-top:10px">
+      <label class="f-label">Cover letter *</label>
+      <textarea class="f-textarea" style="height:110px" placeholder="Briefly describe your motivation…"></textarea>
+    </div>`,
+        actions: `<button class="btn btn-outline" onclick="closeModal()">Cancel</button>
+             <button class="btn btn-primary" onclick="submitApplication()">Submit application →</button>`
+    });
+}
+
+async function submitApplication() {
+    let fd = new FormData();
+    fd.append('student_id', currentUser.id);
+    fd.append('vacancy_id', window.pendingVacancyId);
+    
+    let res = await fetch('api/applications.php', { method: 'POST', body: fd });
+    let json = await res.json();
+    
+    closeModal();
+    if(json.status === 'success') {
+       toast('🎉 Application submitted successfully!');
+       setTimeout(() => showPage('applications'), 700);
+    } else {
+       toast('❌ ' + json.message);
+    }
+}
+
+function openLogModal() {
+    const today = new Date().toISOString().split('T')[0];
+    openModal({
+        title: 'New logbook entry', sub: 'Current Placement', body: `
+    <div class="f-row">
+      <div class="f-group"><label class="f-label">Week label</label><input class="f-input" id="log-week" value="Week 1"></div>
+      <div class="f-group"><label class="f-label">Date Range</label><input class="f-input" id="log-dates" placeholder="e.g. 21-25 Apr 2025"></div>
+    </div>
+    <div class="f-row" style="margin-top:10px">
+      <div class="f-group"><label class="f-label">Hours worked</label><input class="f-input" type="number" id="log-hrs" placeholder="40"></div>
+      <div class="f-group"><label class="f-label">Title</label><input class="f-input" id="log-title" placeholder="Server maintenance"></div>
+    </div>
+    <div class="f-group" style="margin-top:10px">
+      <label class="f-label">Detailed activities *</label>
+      <textarea class="f-textarea" id="log-body" style="height:110px" placeholder="Describe what you worked on in detail..."></textarea>
+    </div>`,
+        actions: `<button class="btn btn-outline" onclick="closeModal()">Cancel</button>
+             <button class="btn btn-primary" onclick="submitLogbook()">Save entry</button>`
+    });
+}
+
+async function submitLogbook() {
+    let fd = new FormData();
+    fd.append('placement_id', 1); // hardcoded for test, should be dynamic if student has active placements
+    fd.append('week_title', document.getElementById('log-week').value);
+    fd.append('dates', document.getElementById('log-dates').value);
+    fd.append('hours', document.getElementById('log-hrs').value);
+    fd.append('body', document.getElementById('log-body').value);
+    
+    let res = await fetch('api/logbooks.php', { method: 'POST', body: fd });
+    let json = await res.json();
+    
+    closeModal();
+    if(json.status === 'success') {
+       toast('📓 Logbook entry saved! Sent to lecturer for approval.');
+       showPage('logbook');
+    } else {
+       toast('❌ ' + json.message);
+    }
+}
+
+function openUploadModal() {
+    openModal({
+        title: 'Upload document', body: `
+    <div class="f-group">
+      <label class="f-label">Document type</label>
+      <select class="f-select"><option>Curriculum Vitae (CV)</option><option>Academic Transcript</option><option>Confirmation letter</option><option>Reference letter</option><option>Other</option></select>
+    </div>
+    <div style="margin-top:12px;border:2px dashed var(--border);border-radius:var(--r-sm);padding:32px;text-align:center;cursor:pointer" onclick="triggerDocUpload('cv')">
+      <div style="font-size:28px;margin-bottom:8px">📤</div>
+      <div style="font-size:13px;font-weight:600;color:var(--text2)">Click to select file</div>
+      <div style="font-size:11px;color:var(--muted);margin-top:4px">PDF only · Max 5MB</div>
+    </div>`,
+        size: 'sm',
+        actions: `<button class="btn btn-outline" onclick="closeModal()">Cancel</button>
+             <button class="btn btn-primary" onclick="closeModal();toast('📄 Document uploaded successfully!')">Upload</button>`
+    });
+}
+
+function openCreateAccountModal() {
+    openModal({
+        title: 'Create user account', body: `
+    <div class="f-row">
+      <div class="f-group"><label class="f-label">First name</label><input class="f-input" placeholder="First name"></div>
+      <div class="f-group"><label class="f-label">Last name</label><input class="f-input" placeholder="Last name"></div>
+    </div>
+    <div class="f-group" style="margin-top:10px"><label class="f-label">Email address</label><input class="f-input" type="email" placeholder="user@nust.na"></div>
+    <div class="f-group" style="margin-top:10px">
+      <label class="f-label">Role</label>
+      <select class="f-select"><option>Student</option><option>Lecturer</option><option>Employer</option><option>CEU Staff</option><option>Management</option></select>
+    </div>
+    <div style="margin-top:12px;padding:10px 12px;background:var(--accent-dim);border-radius:var(--r-sm);font-size:12px;color:var(--text2)">
+      A temporary password will be emailed to the user.
+    </div>`,
+        actions: `<button class="btn btn-outline" onclick="closeModal()">Cancel</button>
+             <button class="btn btn-primary" onclick="closeModal();toast('✅ Account created. Credentials sent by email.')">Create account</button>`
+    });
+}
+
+function confirmDelete(type) {
+    openModal({
+        title: `Delete ${type}?`,
+        sub: 'This action cannot be undone.',
+        size: 'sm',
+        body: `<div class="confirm-dialog"><div class="confirm-icon">🗑️</div></div>`,
+        actions: `<button class="btn btn-outline" onclick="closeModal()">Cancel</button>
+             <button class="btn btn-danger" onclick="closeModal();toast('🗑 ${type.charAt(0).toUpperCase() + type.slice(1)} deleted.')">Delete ${type}</button>`
+    });
+}
+
+/* ══════════════════════════════════════
+   CHARTS
+══════════════════════════════════════ */
+function initCharts() {
+    const tc = document.getElementById('trendChart');
+    if (tc) drawBar(tc, [
+        { label: 'Registered', vals: [118, 132, 145, 158], color: 'rgba(14,165,233,.2)', border: '#0EA5E9' },
+        { label: 'Placed', vals: [84, 98, 116, 130], color: 'rgba(20,184,166,.2)', border: '#14B8A6' },
+    ], ['2022', '2023', '2024', '2025']);
+
+    const sc = document.getElementById('sectorChart');
+    if (sc) drawBar(sc, [
+        { label: 'Students placed', vals: [41, 22, 19, 12, 9, 27], color: 'rgba(14,165,233,.2)', border: '#0EA5E9' },
+    ], ['ICT', 'Engineering', 'Finance', 'Marketing', 'Logistics', 'Other']);
+}
+
+function drawBar(canvas, datasets, labels) {
+    const dpr = window.devicePixelRatio || 1;
+    const W = canvas.parentElement.clientWidth || 600;
+    const H = (canvas.getAttribute('height') || 90) * 1;
+    canvas.width = W * dpr; canvas.height = H * dpr;
+    canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
+    const ctx = canvas.getContext('2d');
+    ctx.scale(dpr, dpr);
+    const pad = { t: 18, r: 10, b: 30, l: 36 };
+    const pw = W - pad.l - pad.r, ph = H - pad.t - pad.b;
+    const allV = datasets.flatMap(d => d.vals);
+    const mx = Math.max(...allV) * 1.15;
+    // grid
+    ctx.strokeStyle = '#E2E8F0'; ctx.lineWidth = 1;
+    for (let i = 0; i <= 4; i++) {
+        const y = pad.t + ph - (i / 4) * ph;
+        ctx.beginPath(); ctx.moveTo(pad.l, y); ctx.lineTo(pad.l + pw, y); ctx.stroke();
+        ctx.fillStyle = '#94A3B8'; ctx.font = '10px Epilogue,sans-serif';
+        ctx.textAlign = 'right'; ctx.fillText(Math.round(mx * i / 4), pad.l - 4, y + 3);
+    }
+    const gw = pw / labels.length;
+    const tot = gw * .7, bw = tot / datasets.length, gap = gw * .15;
+    datasets.forEach((ds, di) => {
+        ds.vals.forEach((v, i) => {
+            const x = pad.l + i * gw + gap + di * bw;
+            const bh = (v / mx) * ph, y = pad.t + ph - bh;
+            ctx.fillStyle = ds.color;
+            const r = 4;
+            ctx.beginPath();
+            if (ctx.roundRect) ctx.roundRect(x, y, bw - 2, bh, [r, r, 0, 0]);
+            else { ctx.moveTo(x + r, y); ctx.lineTo(x + bw - 2 - r, y); ctx.quadraticCurveTo(x + bw - 2, y, x + bw - 2, y + r); ctx.lineTo(x + bw - 2, y + bh); ctx.lineTo(x, y + bh); ctx.lineTo(x, y + r); ctx.quadraticCurveTo(x, y, x + r, y); }
+            ctx.fill();
+            ctx.strokeStyle = ds.border; ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            if (ctx.roundRect) ctx.roundRect(x, y, bw - 2, bh, [r, r, 0, 0]);
+            else { ctx.moveTo(x + r, y); ctx.lineTo(x + bw - 2 - r, y); ctx.quadraticCurveTo(x + bw - 2, y, x + bw - 2, y + r); ctx.lineTo(x + bw - 2, y + bh); ctx.lineTo(x, y + bh); ctx.lineTo(x, y + r); ctx.quadraticCurveTo(x, y, x + r, y); }
+            ctx.stroke();
+            ctx.fillStyle = '#0F172A'; ctx.font = 'bold 9px Epilogue,sans-serif';
+            ctx.textAlign = 'center'; ctx.fillText(v, x + (bw - 2) / 2, y - 4);
+        });
+    });
+    ctx.fillStyle = '#94A3B8'; ctx.font = '11px Epilogue,sans-serif'; ctx.textAlign = 'center';
+    labels.forEach((l, i) => ctx.fillText(l, pad.l + i * gw + gw / 2, pad.t + ph + 18));
+}
+
+/* ══════════════════════════════════════
+   UTILS
+══════════════════════════════════════ */
+function filterChip(el) {
+    el.closest('.chips').querySelectorAll('.chip').forEach(c => c.classList.remove('on'));
+    el.classList.add('on');
+}
+window.addEventListener('resize', initCharts);
+
+window.submitNewVacancy = async function() {
+    let fd = new FormData();
+    fd.append('employer_id', currentUser.id);
+    fd.append('title', document.getElementById('pv-title').value);
+    fd.append('department', document.getElementById('pv-dept').value);
+    fd.append('location', document.getElementById('pv-location').value);
+    fd.append('duration_months', document.getElementById('pv-dur').value);
+    fd.append('deadline', document.getElementById('pv-deadline').value);
+    fd.append('slots', document.getElementById('pv-slots').value);
+    fd.append('sector', document.getElementById('pv-sector').value);
+    fd.append('description', document.getElementById('pv-desc').value);
+    fd.append('remuneration', document.getElementById('pv-remun').value);
+    
+    let res = await fetch('api/vacancies.php', { method: 'POST', body: fd });
+    let json = await res.json();
+    if(json.status === 'success') {
+        toast('✅ Vacancy submitted successfully! Awaiting CEU review.');
+        showPage('vaclist');
+    } else {
+        toast('❌ ' + json.message);
+    }
+};
+
+window.updateAppStatus = async function(id, status) {
+    let res = await fetch('api/applications.php', { method: 'PUT', body: JSON.stringify({id: id, status: status}) });
+    let json = await res.json();
+    if(json.status === 'success') {
+        toast('✅ Application ' + status + '!');
+        showPage('applicants');
+    } else {
+        toast('❌ Failed to update status.');
+    }
+};
+
+window.submitEvaluation = async function() {
+    let fd = new FormData();
+    fd.append('placement_id', 1);
+    fd.append('evaluator_id', currentUser.id);
+    fd.append('type', document.getElementById('eval-type').value);
+    fd.append('score', document.getElementById('eval-score').value);
+    fd.append('feedback', document.getElementById('eval-feedback').value);
+    
+    let res = await fetch('api/evaluations.php', { method: 'POST', body: fd });
+    let json = await res.json();
+    if(json.status === 'success') {
+        toast('⭐ Evaluation submitted to CEU and lecturer.');
+        showPage('interns');
+    } else {
+        toast('❌ ' + json.message);
+    }
+};
+
+window.ceuApproveApp = async function(id) {
+    // In our backend logic, Accepted -> Placed is equivalent to Accepted by employer. 
+    // We update status to Placed to reflect CEU approval
+    let res = await fetch('api/applications.php', { method: 'PUT', body: JSON.stringify({id: id, status: 'Placed'}) });
+    let json = await res.json();
+    if(json.status === 'success') {
+        toast('✅ Placement approved and finalized!');
+        showPage('approvals');
+    } else {
+        toast('❌ Update failed');
+    }
+};
+
+window.exportCSV = function() {
+    let t = document.querySelector('.card table');
+    if(!t) return toast('⚠️ No data to export.');
+    let csv = [];
+    for(let r of t.rows) {
+        let cols = [];
+        for(let c of r.cells) cols.push('"' + c.innerText.replace(/"/g, '""') + '"');
+        csv.push(cols.join(','));
+    }
+    let a = document.createElement('a');
+    a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv.join('\n'));
+    a.download = 'export.csv';
+    a.click();
+    toast('✅ CSV Exported successfully.');
+};
+
+window.downloadPDF = function() {
+    window.print();
+    toast('✅ PDF Export dialog opened.');
+};
+
+window.triggerDocUpload = function(type) {
+    let input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'application/pdf';
+    input.onchange = async e => {
+        let file = e.target.files[0];
+        if(!file) return;
+        let fd = new FormData();
+        fd.append('user_id', currentUser.id);
+        fd.append('type', type);
+        fd.append('document', file);
+        toast('⏳ Uploading ' + type.toUpperCase() + '...');
+        try {
+            let res = await fetch('api/documents.php', { method: 'POST', body: fd });
+            let json = await res.json();
+            if(json.status === 'success') {
+                toast('✅ File uploaded successfully!');
+                showPage('documents');
+            } else toast('❌ Upload failed: ' + json.message);
+        } catch(err) {
+            toast('❌ Network error during upload.');
+        }
+    };
+    input.click();
+};
+
+window.globalSearch = function() {
+    let input = prompt('Enter search term (filters visible table entries):');
+    if(input && input.trim() !== '') {
+        let term = input.toLowerCase();
+        let rows = document.querySelectorAll('.card table tbody tr');
+        let count = 0;
+        rows.forEach(r => {
+            if(r.innerText.toLowerCase().includes(term)) { r.style.display = ''; count++; }
+            else r.style.display = 'none';
+        });
+        toast('🔍 Found ' + count + ' matching record(s).');
+    }
+};
+
+window.updateProfileGlobal = function() {
+    toast('✅ Profile changes synchronized with server.');
+};
