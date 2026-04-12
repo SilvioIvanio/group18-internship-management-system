@@ -23,3 +23,33 @@ switch ($method) {
         break;
 
     case 'POST':
+        $employer_id = $_POST['employer_id'] ?? 0;
+        $title = $_POST['title'] ?? '';
+        $department = $_POST['department'] ?? '';
+        $location = $_POST['location'] ?? '';
+        $duration = (int)($_POST['duration_months'] ?? 0);
+        $deadline = $_POST['deadline'] ?? '';
+        $slots = (int)($_POST['slots'] ?? 0);
+        $sector = $_POST['sector'] ?? '';
+        $desc = $_POST['description'] ?? '';
+        $req = $_POST['requirements'] ?? '';
+        $remuneration = $_POST['remuneration'] ?? '';
+
+        $stmt = $conn->prepare("INSERT INTO vacancies (employer_id, title, department, location, duration_months, deadline, slots, sector, description, requirements, remuneration) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        $stmt->bind_param("isssisissss", $employer_id, $title, $department, $location, $duration, $deadline, $slots, $sector, $desc, $req, $remuneration);
+        
+        if ($stmt->execute()) {
+            echo json_encode(["status" => "success", "message" => "Vacancy created"]);
+        } else {
+            echo json_encode(["status" => "error", "message" => "Failed to create vacancy"]);
+        }
+        break;
+
+    case 'PUT':
+        // Parse raw JSON since PHP doesn't populate $_POST for PUT forms normally
+        $data = json_decode(file_get_contents("php://input"), true);
+        $id = $data['id'] ?? 0;
+        $status = $data['status'] ?? 'Open';
+        
+        $stmt = $conn->prepare("UPDATE vacancies SET status = ? WHERE id = ?");
+        $stmt->bind_param("si", $status, $id);
