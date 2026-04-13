@@ -53,3 +53,22 @@ switch ($method) {
         
         $stmt = $conn->prepare("UPDATE vacancies SET status = ? WHERE id = ?");
         $stmt->bind_param("si", $status, $id);
+        if ($stmt->execute()) {
+            echo json_encode(["status" => "success", "message" => "Vacancy updated"]);
+        } else {
+            echo json_encode(["status" => "error", "message" => "Update failed"]);
+        }
+        break;
+
+    case 'DELETE':
+        $id = $_GET['id'] ?? 0;
+        $stmt = $conn->prepare("DELETE FROM vacancies WHERE id = ?");
+        $stmt->bind_param("i", $id);
+        if ($stmt->execute()) {
+            echo json_encode(["status" => "success", "message" => "Vacancy deleted"]);
+        } else {
+            echo json_encode(["status" => "error", "message" => "Delete failed"]);
+        }
+        break;
+}
+?>
