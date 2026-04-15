@@ -23,3 +23,12 @@ $stmt->bind_param("ssss", $name, $email, $hash, $role);
 if ($stmt->execute()) {
     $user_id = $conn->insert_id;
     // Insert full profile
+    $profile_stmt = $conn->prepare("INSERT INTO user_profiles (user_id, student_no, programme, year_of_study) VALUES (?, ?, ?, ?)");
+    $profile_stmt->bind_param("isss", $user_id, $student_no, $programme, $year_of_study);
+    $profile_stmt->execute();
+
+    echo json_encode(["status" => "success", "message" => "Registration successful"]);
+} else {
+    echo json_encode(["status" => "error", "message" => "Email already exists"]);
+}
+?>
