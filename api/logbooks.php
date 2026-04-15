@@ -33,3 +33,31 @@ switch ($method) {
     case 'POST':
         $placement_id = $_POST['placement_id'] ?? 0;
         $week = $_POST['week_title'] ?? '';
+        $dates = $_POST['dates'] ?? '';
+        $body = $_POST['body'] ?? '';
+        $hours = (int)($_POST['hours'] ?? 0);
+        
+        $stmt = $conn->prepare("INSERT INTO logbooks (placement_id, week_title, dates, body, hours, status) VALUES (?, ?, ?, ?, ?, 'Pending')");
+        $stmt->bind_param("isssi", $placement_id, $week, $dates, $body, $hours);
+        if ($stmt->execute()) {
+            echo json_encode(["status" => "success", "message" => "Logbook entry submitted"]);
+        } else {
+            echo json_encode(["status" => "error", "message" => "Failed to submit"]);
+        }
+        break;
+
+    case 'PUT':
+        $data = json_decode(file_get_contents("php://input"), true);
+        $id = $data['id'] ?? 0;
+        $status = $data['status'] ?? ''; // Approved, Rejected
+        
+        $stmt = $conn->prepare("UPDATE logbooks SET status = ? WHERE id = ?");
+        $stmt->bind_param("si", $status, $id);
+        if ($stmt->execute()) {
+            echo json_encode(["status" => "success", "message" => "Logbook updated"]);
+        } else {
+            echo json_encode(["status" => "error", "message" => "Update failed"]);
+        }
+        break;
+}
+?>
