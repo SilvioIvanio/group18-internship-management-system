@@ -63,3 +63,20 @@ switch ($method) {
         if ($stmt->execute()) {
             // If Accepted, create a Placement
             if ($status === 'Accepted') {
+                $q = $conn->prepare("SELECT student_id, vacancy_id FROM applications WHERE id = ?");
+                $q->bind_param("i", $id);
+                $q->execute();
+                $r = $q->get_result()->fetch_assoc();
+                
+                $create = $conn->prepare("INSERT INTO placements (student_id, vacancy_id, start_date, end_date) VALUES (?, ?, CURRENT_DATE, DATE_ADD(CURRENT_DATE, INTERVAL 6 MONTH))");
+                $create->bind_param("ii", $r['student_id'], $r['vacancy_id']);
+                $create->execute();
+            }
+            
+            echo json_encode(["status" => "success", "message" => "Application updated"]);
+        } else {
+            echo json_encode(["status" => "error", "message" => "Update failed"]);
+        }
+        break;
+}
+?>
