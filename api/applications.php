@@ -43,3 +43,23 @@ switch ($method) {
         }
 
         $stmt = $conn->prepare("INSERT INTO applications (student_id, vacancy_id, status) VALUES (?, ?, 'Pending')");
+        $stmt->bind_param("ii", $student_id, $vacancy_id);
+        if ($stmt->execute()) {
+            echo json_encode(["status" => "success", "message" => "Application submitted"]);
+        } else {
+            echo json_encode(["status" => "error", "message" => "Failed to apply"]);
+        }
+        break;
+
+    case 'PUT':
+        $data = json_decode(file_get_contents("php://input"), true);
+        $id = $data['id'] ?? 0;
+        $status = $data['status'] ?? ''; // Shortlisted, Accepted, Rejected
+
+        // First update application status
+        $stmt = $conn->prepare("UPDATE applications SET status = ? WHERE id = ?");
+        $stmt->bind_param("si", $status, $id);
+        
+        if ($stmt->execute()) {
+            // If Accepted, create a Placement
+            if ($status === 'Accepted') {
